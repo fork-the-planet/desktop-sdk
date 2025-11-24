@@ -296,8 +296,8 @@ class TogetherProvider
 
     if (data.apiKey) {
       return {
-        field: "url",
-        message: "Invalid URL",
+        field: "key",
+        message: "Invalid API key",
       };
     }
 
