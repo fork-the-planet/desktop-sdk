@@ -133,7 +133,10 @@ const ConfigDialog = ({ open, onClose }: ConfigDialogProps) => {
     if (!open) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      if (
+        e.key === "Enter" &&
+        document.activeElement?.id === "dialog-content"
+      ) {
         e.preventDefault();
         onSubmitAction();
       }
