@@ -17,7 +17,9 @@ export type ProviderType =
   | "openai"
   | "together"
   | "openrouter"
-  | "genai";
+  | "genai"
+  | "deepseek"
+  | "xai";
 
 export type Model = {
   id: string;

@@ -285,7 +285,6 @@ class GenAIProvider extends AbstractBaseProvider<
 
       while (page.length > 0) {
         for (const model of page) {
-          console.log(model.displayName);
           const modelId = model.name?.replace("models/", "") ?? "";
 
           if (genaiInfo.modelFilters.includes(modelId)) {
