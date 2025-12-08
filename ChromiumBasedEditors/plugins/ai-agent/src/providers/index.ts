@@ -1,4 +1,5 @@
 import type { ThreadMessageLike } from "@assistant-ui/react";
+import { CURRENT_MODEL_KEY } from "@/lib/constants";
 import type { Model, ProviderType, TMCPItem, TProvider } from "@/lib/types";
 import type { TData } from "./base";
 import { SYSTEM_PROMPT } from "./prompts";
@@ -8,6 +9,7 @@ import {
   getSupportedProviderTypes,
   providerRegistry,
 } from "./registry";
+import "./lm-studio";
 
 export type SendMessageReturnType = AsyncGenerator<
   | ThreadMessageLike
@@ -37,6 +39,13 @@ class Provider {
     if (this.currentProvider) {
       this.currentProvider.setProvider(provider);
       this.currentProvider.setSystemPrompt(SYSTEM_PROMPT);
+
+      // Restore model from localStorage to handle initialization race condition
+      const savedModel = localStorage.getItem(CURRENT_MODEL_KEY);
+      if (savedModel) {
+        const parsed: Model = JSON.parse(savedModel);
+        this.currentProvider.setModelKey(parsed.id);
+      }
     }
   };
 

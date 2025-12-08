@@ -19,7 +19,8 @@ export type ProviderType =
   | "openrouter"
   | "genai"
   | "deepseek"
-  | "xai";
+  | "xai"
+  | "lm-studio";
 
 export type Model = {
   id: string;
