@@ -41,8 +41,6 @@ const useProviders = create<ProvidersState>()((set, get) => ({
 
     const parsed: TProvider = JSON.parse(saved);
 
-    // Since checkNewProvider is async, we need to handle this differently
-    // For now, just set the provider and validate it asynchronously
     provider.setCurrentProvider(parsed);
 
     return parsed;
