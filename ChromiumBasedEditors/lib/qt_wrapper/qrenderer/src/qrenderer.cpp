@@ -335,12 +335,38 @@ namespace NSConversions
 		return pQImage;
 	}
 
-	QBrush* createTextureBrush(Aggplus::CImage* pImage, const bool& bIsDestroyImage, int& nWidth, int &nHeight)
+	QImage createMirroredImage(QImage* img, bool flipX, bool flipY)
+	{
+		int w = img->width();
+		int h = img->height();
+		int new_w = flipX ? 2 * w : w;
+		int new_h = flipY ? 2 * h : h;
+
+		QImage mirImg(new_w, new_h, QImage::Format_ARGB32);
+		QPainter p(&mirImg);
+
+		p.drawImage(0, 0, *img);
+
+		if (flipX)
+			p.drawImage(w, 0, img->mirrored(true, false));
+
+		if (flipY)
+			p.drawImage(0, h, img->mirrored(false, true));
+
+		if (flipX && flipY)
+			p.drawImage(w, h, img->mirrored(true, true));
+
+		p.end();
+		return mirImg;
+	}
+
+	QBrush* createTextureBrush(Aggplus::CImage* pImage, const bool& bIsDestroyImage, int& nWidth, int &nHeight, bool flipX, bool flipY)
 	{
 		if (!pImage || pImage->GetLastStatus() != Aggplus::Ok)
 			return NULL;
 
 		QBrush* pBrush = new QBrush();
+		QImage oImage;
 
 		nWidth = (int)pImage->GetWidth();
 		nHeight = (int)pImage->GetHeight();
@@ -370,13 +396,14 @@ namespace NSConversions
 			}
 
 			if (bIsDestroyImage)
-				pBrush->setTextureImage(QImage(pImage->GetData(), nWidth, nHeight, nStride, QImage::Format_ARGB32, cleanupPixels, pImage));
+				oImage = QImage(pImage->GetData(), nWidth, nHeight, nStride, QImage::Format_ARGB32, cleanupPixels, pImage);
 			else
 			{
 				size_t nDataSize = 4 * nWidth * nHeight;
 				unsigned char* data = new unsigned char[nDataSize];
 				memcpy(data, pImage->GetData(), nDataSize);
-				pBrush->setTextureImage(QImage(data, nWidth, nHeight, nStride, QImage::Format_ARGB32, cleanupPixels2, data));
+
+				oImage = QImage(data, nWidth, nHeight, nStride, QImage::Format_ARGB32, cleanupPixels2, data);
 
 				// отложенно печатается, а pImage мы уже удалим - поэтому копируем память.
 				//pBrush->setTextureImage(QImage(pImage->GetData(), nWidth, nHeight, nStride, QImage::Format_ARGB32));
@@ -385,7 +412,7 @@ namespace NSConversions
 		else
 		{
 			// copy image
-			QImage oImage(nWidth, nHeight, QImage::Format_ARGB32);
+			oImage = QImage(nWidth, nHeight, QImage::Format_ARGB32);
 			const uchar* pSrc = pImage->GetData();
 			if (nStride < 0)
 				pSrc += nStride * (nHeight - 1);
@@ -405,14 +432,17 @@ namespace NSConversions
 					pSrc += 4;
 				}
 			}
-
-			pBrush->setTextureImage(oImage);
 		}
+
+		if (flipX || flipY)
+			pBrush->setTextureImage(createMirroredImage(&oImage, flipX, flipY));
+		else
+			pBrush->setTextureImage(oImage);
 
 		return pBrush;
 	}
 
-	QBrush* createTextureBrush(const std::wstring &path, int& nWidth, int &nHeight)
+	QBrush* createTextureBrush(const std::wstring &path, int& nWidth, int &nHeight, bool flipX, bool flipY)
 	{
 		Aggplus::CImage* pImage = new Aggplus::CImage(path);
 		if (pImage->GetLastStatus() != Aggplus::Ok)
@@ -421,7 +451,7 @@ namespace NSConversions
 			return NULL;
 		}
 
-		return createTextureBrush(pImage, true, nWidth, nHeight);
+		return createTextureBrush(pImage, true, nWidth, nHeight, flipX, flipY);
 	}
 
 	void correctBrushTextureTransform(NSStructures::CBrush* pLogicBrush, QBrush* pBrush, QPainterPath* pPath,
@@ -459,6 +489,9 @@ namespace NSConversions
 		}
 		case c_BrushTextureModeTile:
 		case c_BrushTextureModeTileCenter:
+		case c_BrushTextureModeTileFlipX:
+		case c_BrushTextureModeTileFlipY:
+		case c_BrushTextureModeTileFlipXY:
 		{
 			double dTileDpi = 96.0;
 			double dDpiX = dTileDpi;
@@ -2302,13 +2335,38 @@ void NSQRenderer::CQRenderer::fillPath(QPainterPath* pPath)
 		{
 			int nImageWidth = 0;
 			int nImageHeight = 0;
+
+			bool flipX = false;
+			bool flipY = false;
+			switch (m_oBrush.TextureMode)
+			{
+			case c_BrushTextureModeTileFlipX:
+			{
+				flipX = true;
+				break;
+			}
+			case c_BrushTextureModeTileFlipY:
+			{
+				flipY = true;
+				break;
+			}
+			case c_BrushTextureModeTileFlipXY:
+			{
+				flipX = true;
+				flipY = true;
+				break;
+			}
+			default:
+				break;
+			}
+
 			if (sTempPath.empty())
 			{
-				pBrush = NSConversions::createTextureBrush(m_oBrush.TexturePath, nImageWidth, nImageHeight);
+				pBrush = NSConversions::createTextureBrush(m_oBrush.TexturePath, nImageWidth, nImageHeight, flipX, flipY);
 			}
 			else
 			{
-				pBrush = NSConversions::createTextureBrush(sTempPath, nImageWidth, nImageHeight);
+				pBrush = NSConversions::createTextureBrush(sTempPath, nImageWidth, nImageHeight, flipX, flipY);
 				NSFile::CFileBinary::Remove(sTempPath);
 			}
 
