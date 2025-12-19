@@ -43,6 +43,10 @@ export const removeSpecialCharacter = (str: string) => {
   return str.replace(/[\\/:*"<>|?]/g, "");
 };
 
+export const sanitizeProviderName = (str: string) => {
+  return removeSpecialCharacter(str);
+};
+
 export const getMessageTitleFromMd = (md: string) => {
   const lines = md.split("\n");
 

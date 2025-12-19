@@ -1,6 +1,6 @@
 import type { ProviderType } from "@/lib/types";
 import { type AnthropicProvider, anthropicProvider } from "./anthropic";
-import { type DeepSeekProvider, deepseekProvider } from "./deepseek";
+// import { type DeepSeekProvider, deepseekProvider } from "./deepseek";
 import { type GenAIProvider, genaiProvider } from "./genai";
 import { type LMStudioProvider, lmStudioProvider } from "./lm-studio";
 import { type OllamaProvider, ollamaProvider } from "./ollama";
@@ -16,7 +16,7 @@ export type BaseProvider =
   | TogetherProvider
   | OpenRouterProvider
   | GenAIProvider
-  | DeepSeekProvider
+  // | DeepSeekProvider
   | XAIProvider
   | LMStudioProvider;
 
@@ -31,7 +31,7 @@ export const providerRegistry: Record<ProviderType, BaseProvider> = {
   together: togetherProvider,
   openrouter: openrouterProvider,
   genai: genaiProvider,
-  deepseek: deepseekProvider,
+  // deepseek: deepseekProvider,
   xai: xaiProvider,
   "lm-studio": lmStudioProvider,
 };
