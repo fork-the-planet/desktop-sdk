@@ -9,6 +9,7 @@ import ExternalIconUrl from "@/assets/btn-external.svg?url";
 import SearchIconUrl from "@/assets/btn-web-search.svg?url";
 import CheckedIconUrl from "@/assets/checked.svg?url";
 import CodeIconUrl from "@/assets/code.svg?url";
+import ErrorToolCalledIconUrl from "@/assets/status.error.svg?url";
 import ToolCalledIconUrl from "@/assets/tool.called.svg?url";
 import server from "@/servers";
 import { IconButton } from "../icon-button";
@@ -92,6 +93,13 @@ export const ToolFallback: ToolCallMessagePartComponent = ({
     });
   }, []);
 
+  let parsedResult = result;
+  try {
+    parsedResult = typeof result === "string" ? JSON.parse(result) : result;
+  } catch {
+    // ignore
+  }
+
   return (
     <div className="my-[16px] flex w-full flex-col gap-3">
       <div
@@ -110,7 +118,13 @@ export const ToolFallback: ToolCallMessagePartComponent = ({
         }}
       >
         {!isLoading ? (
-          <ReactSVG src={ToolCalledIconUrl} />
+          <ReactSVG
+            src={
+              parsedResult?.data?.error
+                ? ErrorToolCalledIconUrl
+                : ToolCalledIconUrl
+            }
+          />
         ) : (
           <Loader size={16} />
         )}
@@ -178,18 +192,14 @@ export const ToolFallback: ToolCallMessagePartComponent = ({
                 <div>
                   {(() => {
                     try {
-                      const parsedResult =
-                        typeof result === "string"
-                          ? JSON.parse(result)
-                          : result;
-
                       // Check if there's an error in the result
-                      if (parsedResult?.error) {
+
+                      if (parsedResult?.data?.error) {
                         return (
                           <pre className="max-h-[200px] overflow-y-auto whitespace-pre-wrap text-[var(--chat-message-tool-call-pre-color)] border border-[var(--chat-message-tool-call-pre-border-color)] bg-[var(--chat-message-tool-call-pre-background-color)] px-[8px] py-[2px] rounded-[4px]">
-                            {typeof result === "string"
+                            {typeof parsedResult === "string"
                               ? result
-                              : JSON.stringify(result, null, 2)}
+                              : parsedResult?.data?.error}
                           </pre>
                         );
                       }
