@@ -1,8 +1,5 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import OpenChatListUrl from "@/assets/btn-list-search.svg?url";
-import ArrowLeftUrl from "@/assets/btn-previtem.svg?url";
-import SearchUrl from "@/assets/search.svg?url";
 import { IconButton } from "@/components/icon-button";
 import { Input } from "@/components/input";
 import { TooltipIconButton } from "@/components/tooltip-icon-button";
@@ -51,7 +48,7 @@ const ChatList = () => {
             {t("ChatHistory")}
           </h4>
           <IconButton
-            iconName={ArrowLeftUrl}
+            iconName="btn-previtem"
             size={24}
             isStroke
             onClick={() => setIsOpen(false)}
@@ -63,7 +60,7 @@ const ChatList = () => {
               className="w-full"
               type="search"
               placeholder={t("Search")}
-              icon={SearchUrl}
+              icon="search"
               value={searchValue}
               onChange={onChangeSearchValue}
               onClear={() => setSearchValue("")}
@@ -106,9 +103,8 @@ const ChatList = () => {
     <div className="ml-[32px] mt-[24px]">
       <TooltipIconButton tooltip={t("ChatHistory")}>
         <IconButton
-          iconName={OpenChatListUrl}
+          iconName="btn-list-search"
           size={24}
-          // isStroke
           onClick={() => {
             setCurrentPage("chat");
             setIsOpen(true);

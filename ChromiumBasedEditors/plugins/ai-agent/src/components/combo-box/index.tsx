@@ -1,6 +1,5 @@
 import React from "react";
-import { ReactSVG } from "react-svg";
-import ArrowBottomSvgUrl from "@/assets/arrow.bottom.svg?url";
+import { Icon } from "@/components/icon";
 import { cn } from "@/lib/utils";
 import { DropdownMenu } from "../dropdown";
 import type { DropDownItemProps } from "../dropdown-item/DropDownItem.types";
@@ -25,13 +24,6 @@ const ComboBox = ({
   const [isOpen, setIsOpen] = React.useState(false);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
-
-  const handleBeforeInjection = React.useCallback((svg: SVGSVGElement) => {
-    const paths = svg.querySelectorAll("path");
-    paths.forEach((path) => {
-      path.setAttribute("stroke", "var(--input-color)");
-    });
-  }, []);
 
   return (
     <DropdownMenu
@@ -66,13 +58,18 @@ const ComboBox = ({
           >
             {value || placeholder}
           </span>
-          <ReactSVG
-            src={ArrowBottomSvgUrl}
+          <Icon
+            name="arrow.bottom"
+            size={16}
+            color="var(--input-color)"
+            width={8}
+            height={8}
+            isStroke
             className={cn(
-              "w-[15px] h-[24px] flex items-center justify-center transition-transform",
+              "transition-transform",
+              "ms-[8px]",
               isOpen ? "rotate-180" : ""
             )}
-            beforeInjection={handleBeforeInjection}
           />
         </div>
       }

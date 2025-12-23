@@ -1,9 +1,5 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import EditIconSvgUrl from "@/assets/btn-edit.svg?url";
-import RemoveIconSvgUrl from "@/assets/btn-remove.svg?url";
-import MoreIconSvgUrl from "@/assets/more.svg?url";
-import StatusErrorIconUrl from "@/assets/status.error.svg?url";
 import { DropdownMenu } from "@/components/dropdown";
 import { IconButton } from "@/components/icon-button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/tooltip";
@@ -53,7 +49,7 @@ const ProviderItem = ({ provider }: ProviderItemProps) => {
                 <TooltipTrigger asChild>
                   <div>
                     <IconButton
-                      iconName={StatusErrorIconUrl}
+                      iconName="status.error"
                       size={16}
                       disableHover
                       noColor
@@ -75,18 +71,12 @@ const ProviderItem = ({ provider }: ProviderItemProps) => {
         <div className="flex items-center justify-end" ref={containerRef}>
           <DropdownMenu
             onOpenChange={setIsOpen}
-            trigger={
-              <IconButton
-                iconName={MoreIconSvgUrl}
-                size={20}
-                isActive={isOpen}
-              />
-            }
+            trigger={<IconButton iconName="more" size={20} isActive={isOpen} />}
             items={[
               {
                 icon: (
                   <IconButton
-                    iconName={EditIconSvgUrl}
+                    iconName="btn-edit"
                     size={20}
                     disableHover
                     isStroke
@@ -104,11 +94,7 @@ const ProviderItem = ({ provider }: ProviderItemProps) => {
               },
               {
                 icon: (
-                  <IconButton
-                    iconName={RemoveIconSvgUrl}
-                    size={20}
-                    disableHover
-                  />
+                  <IconButton iconName="btn-remove" size={20} disableHover />
                 ),
                 text: t("Delete"),
                 onClick: () => setDeleteProviderVisible(true),

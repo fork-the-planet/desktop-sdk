@@ -6,9 +6,6 @@ import {
 } from "@assistant-ui/react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import BtnCopyIconUrl from "@/assets/btn-copy.svg?url";
-import DownloadIconUrl from "@/assets/btn-save.svg?url";
-import BtnCheckIconUrl from "@/assets/checked.svg?url";
 import { IconButton } from "@/components/icon-button";
 import { MarkdownText } from "@/components/markdown";
 import { ToolFallback } from "@/components/tool-fallback";
@@ -61,22 +58,17 @@ const AssistantActionBar = () => {
       <ActionBarPrimitive.Copy asChild>
         <TooltipIconButton tooltip={t("CopyToClipboard")}>
           <MessagePrimitive.If copied>
-            <IconButton
-              iconName={BtnCheckIconUrl}
-              size={24}
-              isStroke
-              disabled
-            />
+            <IconButton iconName="checked" size={24} isStroke disabled />
           </MessagePrimitive.If>
           <MessagePrimitive.If copied={false}>
-            <IconButton iconName={BtnCopyIconUrl} size={24} />
+            <IconButton iconName="btn-copy" size={24} />
           </MessagePrimitive.If>
         </TooltipIconButton>
       </ActionBarPrimitive.Copy>
       <div>
         <TooltipIconButton tooltip={t("Save")}>
           <IconButton
-            iconName={DownloadIconUrl}
+            iconName="btn-save"
             size={24}
             onClick={onDownload}
             isStroke

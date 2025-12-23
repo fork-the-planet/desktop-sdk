@@ -1,10 +1,4 @@
-import { ReactSVG } from "react-svg";
-import BtnCloseIconUrl from "@/assets/btn-close.small.svg?url";
-import DocumentsIconUrl from "@/assets/formats/24/documents.svg?url";
-import PdfIconUrl from "@/assets/formats/24/pdf.svg?url";
-import PresentationsIconUrl from "@/assets/formats/24/presentations.svg?url";
-import SpreadsheetsIconUrl from "@/assets/formats/24/spreadsheets.svg?url";
-import UnknownFormatIconUrl from "@/assets/formats/24/unknown-format.svg?url";
+import { Icon } from "@/components/icon";
 import type { TAttachmentFile } from "@/lib/types";
 import {
   cn,
@@ -19,6 +13,19 @@ import { IconButton } from "../icon-button";
 type FileItemProps = {
   file: TAttachmentFile;
   withoutClose?: boolean;
+};
+
+const getFileIconName = (
+  isPDFFile: boolean,
+  isDocumentFile: boolean,
+  isSpreadsheetFile: boolean,
+  isPresentationFile: boolean
+): string => {
+  if (isPDFFile) return "pdf";
+  if (isDocumentFile) return "documents";
+  if (isSpreadsheetFile) return "spreadsheets";
+  if (isPresentationFile) return "presentations";
+  return "unknown-format";
 };
 
 const FileItem = ({ file, withoutClose }: FileItemProps) => {
@@ -39,15 +46,12 @@ const FileItem = ({ file, withoutClose }: FileItemProps) => {
   const isSpreadsheetFile = isSpreadsheet(file.type);
   const isPresentationFile = isPresentation(file.type);
 
-  const icon = isPDFFile
-    ? PdfIconUrl
-    : isDocumentFile
-      ? DocumentsIconUrl
-      : isSpreadsheetFile
-        ? SpreadsheetsIconUrl
-        : isPresentationFile
-          ? PresentationsIconUrl
-          : UnknownFormatIconUrl;
+  const iconName = getFileIconName(
+    isPDFFile,
+    isDocumentFile,
+    isSpreadsheetFile,
+    isPresentationFile
+  );
 
   return (
     <div
@@ -74,7 +78,7 @@ const FileItem = ({ file, withoutClose }: FileItemProps) => {
         <img className="h-[24px]" src={file.content} alt="" />
       ) : (
         <div className="flex flex-row items-center h-[24px] gap-[4px]">
-          {icon ? <ReactSVG className="" src={icon} /> : null}
+          <Icon name={iconName} size={24} noColor />
           <p className="text-[var(--file-items-color)] font-normal text-[14px] leading-[20px] whitespace-nowrap overflow-hidden text-ellipsis">
             {nameWithoutExtension}
             <span className="text-[var(--file-items-ext-color)]">
@@ -86,7 +90,7 @@ const FileItem = ({ file, withoutClose }: FileItemProps) => {
 
       {!withoutClose ? (
         <IconButton
-          iconName={BtnCloseIconUrl}
+          iconName="btn-close.small"
           size={16}
           onClick={handleDelete}
         />

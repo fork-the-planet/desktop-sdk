@@ -1,18 +1,19 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ReactSVG } from "react-svg";
-import AttachmentIconUrl from "@/assets/attachment.svg?url";
-import DocumentsIconSvg from "@/assets/formats/24/documents.svg?url";
-import PdfIconSvg from "@/assets/formats/24/pdf.svg?url";
-import PresentationsIconSvg from "@/assets/formats/24/presentations.svg?url";
-import SpreadsheetsIconSvg from "@/assets/formats/24/spreadsheets.svg?url";
-import UnknownFormatIconSvg from "@/assets/formats/24/unknown-format.svg?url";
 import { DropdownMenu } from "@/components/dropdown";
 import type { DropDownItemProps } from "@/components/dropdown-item/DropDownItem.types";
 import { IconButton } from "@/components/icon-button";
 import { TooltipIconButton } from "@/components/tooltip-icon-button";
 import { isDocument, isPdf, isPresentation, isSpreadsheet } from "@/lib/utils";
 import useAttachmentsStore from "@/store/useAttachmentsStore";
+
+const getFileIconName = (type: number): string => {
+  if (isPdf(type)) return "pdf";
+  if (isSpreadsheet(type)) return "spreadsheets";
+  if (isDocument(type)) return "documents";
+  if (isPresentation(type)) return "presentations";
+  return "unknown-format";
+};
 
 const ComposerActionAttachment = () => {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -85,19 +86,7 @@ const ComposerActionAttachment = () => {
   )?.files
     ?.filter((file) => !file.url)
     ?.map((file) => {
-      let icon: null | string = DocumentsIconSvg;
-
-      if (isPdf(file.type)) {
-        icon = PdfIconSvg;
-      } else if (isSpreadsheet(file.type)) {
-        icon = SpreadsheetsIconSvg;
-      } else if (isDocument(file.type)) {
-        icon = DocumentsIconSvg;
-      } else if (isPresentation(file.type)) {
-        icon = PresentationsIconSvg;
-      } else {
-        icon = UnknownFormatIconSvg;
-      }
+      const iconName = getFileIconName(file.type);
 
       return {
         text: file.path.includes("\\")
@@ -105,7 +94,7 @@ const ComposerActionAttachment = () => {
           : (file.path.split("/").pop() ?? ""),
         key: file.path,
         id: file.path,
-        icon: icon ? <ReactSVG src={icon} /> : null,
+        icon: <IconButton iconName={iconName} size={24} disableHover noColor />,
         onClick: () => selectRecentFile(file.path, file.type),
       };
     })
@@ -116,7 +105,7 @@ const ComposerActionAttachment = () => {
   const trigger = (
     <TooltipIconButton tooltip={t("Attachments")} visible={!isOpen}>
       <IconButton
-        iconName={AttachmentIconUrl}
+        iconName="attachment"
         size={24}
         className="cursor-pointer rounded-[4px] outline-none"
         isStroke

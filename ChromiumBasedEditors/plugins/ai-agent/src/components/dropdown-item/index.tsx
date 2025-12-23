@@ -1,7 +1,5 @@
 import { Item } from "@radix-ui/react-dropdown-menu";
 import { useRef, useState } from "react";
-import ArrowRightIconUrl from "@/assets/arrow.right.svg?url";
-import CheckedIconUrl from "@/assets/checked.svg?url";
 import { cn } from "@/lib/utils";
 import { DropdownMenu } from "../dropdown";
 import { IconButton } from "../icon-button";
@@ -148,7 +146,7 @@ const DropDownItem = ({
         <DropdownMenu
           trigger={
             <IconButton
-              iconName={ArrowRightIconUrl}
+              iconName="arrow.right"
               size={12}
               insideElement
               isStroke
@@ -165,7 +163,7 @@ const DropDownItem = ({
         />
       ) : null}
       {checked ? (
-        <IconButton iconName={CheckedIconUrl} size={16} disableHover isStroke />
+        <IconButton iconName="checked" size={16} disableHover isStroke />
       ) : null}
       {withToggle && onToggleChange ? (
         <div onClick={(e) => e.stopPropagation()}>

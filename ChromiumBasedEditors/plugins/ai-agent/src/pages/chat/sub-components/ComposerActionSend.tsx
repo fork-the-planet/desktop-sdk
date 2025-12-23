@@ -1,6 +1,4 @@
 import { ComposerPrimitive, ThreadPrimitive } from "@assistant-ui/react";
-import ArrowTopIconUrl from "@/assets/arrow.top.svg?url";
-import StopIconUrl from "@/assets/stop.svg?url";
 import { IconButton } from "@/components/icon-button";
 import useMessageStore from "@/store/useMessageStore";
 import useModelsStore from "@/store/useModelsStore";
@@ -16,7 +14,13 @@ const ComposerActionSend = () => {
 
   return isStreamRunning ? (
     <ComposerPrimitive.Cancel asChild>
-      <IconButton iconName={StopIconUrl} size={24} className={BUTTON_STYLES} />
+      <IconButton
+        iconName="stop"
+        size={24}
+        className={BUTTON_STYLES}
+        width={12}
+        height={12}
+      />
     </ComposerPrimitive.Cancel>
   ) : (
     <ThreadPrimitive.If running={false}>
@@ -25,8 +29,10 @@ const ComposerActionSend = () => {
         disabled={!currentModel || !currentProvider}
       >
         <IconButton
-          iconName={ArrowTopIconUrl}
+          iconName="arrow.top"
           size={24}
+          width={12}
+          height={14}
           color="var(--chat-composer-action-send-color)"
           className={BUTTON_STYLES}
         />

@@ -1,6 +1,5 @@
-import React, { useCallback } from "react";
-import { ReactSVG } from "react-svg";
-import ClearSearchIconUrl from "@/assets/clear.search.svg?url";
+import React from "react";
+import { Icon } from "@/components/icon";
 import { cn } from "@/lib/utils";
 
 type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
@@ -9,27 +8,16 @@ type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   onClear?: () => void;
 };
 
+const INPUT_COLOR = "var(--input-color)";
+
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, isError, icon, onClear, ...props }, ref) => {
-    const handleBeforeInjection = useCallback((svg: SVGSVGElement) => {
-      const paths = svg.querySelectorAll("path");
-      paths.forEach((path) => {
-        path.setAttribute("stroke", "var(--input-color)");
-      });
-      const circles = svg.querySelectorAll("circle");
-      circles.forEach((circle) => {
-        circle.setAttribute("fill", "var(--input-color)");
-      });
-    }, []);
-
     return (
       <div className={`relative ${className}`}>
         {icon && (
-          <ReactSVG
-            className="absolute left-[10px] top-[50%] translate-y-[-50%] w-[20px] h-[20px] flex items-center justify-center"
-            src={icon}
-            beforeInjection={handleBeforeInjection}
-          />
+          <div className="absolute left-[10px] top-[50%] translate-y-[-50%] w-[20px] h-[20px] flex items-center justify-center">
+            <Icon name={icon} size={20} color={INPUT_COLOR} isStroke />
+          </div>
         )}
         <input
           ref={ref}
@@ -61,10 +49,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             onClick={onClear}
             className="absolute right-[10px] top-[50%] translate-y-[-50%] w-[20px] h-[20px] flex items-center justify-center cursor-pointer"
           >
-            <ReactSVG
-              src={ClearSearchIconUrl}
-              beforeInjection={handleBeforeInjection}
-            />
+            <Icon name="clear.search" size={20} color={INPUT_COLOR} isStroke />
           </button>
         )}
       </div>

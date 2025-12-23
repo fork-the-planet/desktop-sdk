@@ -1,20 +1,12 @@
 import type { ToolCallMessagePartComponent } from "@assistant-ui/react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ReactSVG } from "react-svg";
-import ArrowBottomIconUrl from "@/assets/arrow.bottom.svg?url";
-import ArrowRightIconUrl from "@/assets/arrow.right.svg?url";
-import CopyIconUrl from "@/assets/btn-copy.svg?url";
-import ExternalIconUrl from "@/assets/btn-external.svg?url";
-import SearchIconUrl from "@/assets/btn-web-search.svg?url";
-import CheckedIconUrl from "@/assets/checked.svg?url";
-import CodeIconUrl from "@/assets/code.svg?url";
-import ErrorToolCalledIconUrl from "@/assets/status.error.svg?url";
-import ToolCalledIconUrl from "@/assets/tool.called.svg?url";
+import { Icon } from "@/components/icon";
 import server from "@/servers";
 import { IconButton } from "../icon-button";
 import { Loader } from "../loader";
 
+const TOOL_CALL_COLOR = "var(--chat-message-tool-call-name-color)";
 export const ToolFallback: ToolCallMessagePartComponent = ({
   toolName,
   argsText,
@@ -71,28 +63,6 @@ export const ToolFallback: ToolCallMessagePartComponent = ({
     //ignore
   }
 
-  const handleBeforeInjectionFill = useCallback((svg: SVGSVGElement) => {
-    const paths = svg.querySelectorAll("path");
-    paths.forEach((path) => {
-      path.setAttribute("fill", "var(--chat-message-tool-call-name-color)");
-    });
-    const circles = svg.querySelectorAll("circle");
-    circles.forEach((circle) => {
-      circle.setAttribute("fill", "var(--chat-message-tool-call-name-color)");
-    });
-  }, []);
-
-  const handleBeforeInjection = useCallback((svg: SVGSVGElement) => {
-    const paths = svg.querySelectorAll("path");
-    paths.forEach((path) => {
-      path.setAttribute("stroke", "var(--chat-message-tool-call-name-color)");
-    });
-    const circles = svg.querySelectorAll("circle");
-    circles.forEach((circle) => {
-      circle.setAttribute("stroke", "var(--chat-message-tool-call-name-color)");
-    });
-  }, []);
-
   let parsedResult = result;
   try {
     parsedResult = typeof result === "string" ? JSON.parse(result) : result;
@@ -118,12 +88,10 @@ export const ToolFallback: ToolCallMessagePartComponent = ({
         }}
       >
         {!isLoading ? (
-          <ReactSVG
-            src={
-              parsedResult?.data?.error
-                ? ErrorToolCalledIconUrl
-                : ToolCalledIconUrl
-            }
+          <Icon
+            name={parsedResult?.data?.error ? "status.error" : "tool.called"}
+            size={16}
+            noColor
           />
         ) : (
           <Loader size={16} />
@@ -135,15 +103,9 @@ export const ToolFallback: ToolCallMessagePartComponent = ({
         ) : null}
         <span className="flex items-center gap-[8px] rounded-[4px] ps-[4px] pe-[8px] text-[14px] leading-[20px] font-normal text-[var(--chat-message-tool-call-name-color)] bg-[var(--chat-message-tool-call-name-background-color)] min-w-0 w-fit">
           {isWebSearch ? (
-            <ReactSVG
-              src={SearchIconUrl}
-              beforeInjection={handleBeforeInjectionFill}
-            />
+            <Icon name="btn-web-search" size={16} color={TOOL_CALL_COLOR} />
           ) : !isWebCrawling ? (
-            <ReactSVG
-              src={CodeIconUrl}
-              beforeInjection={handleBeforeInjection}
-            />
+            <Icon name="code" size={16} color={TOOL_CALL_COLOR} isStroke />
           ) : null}
           <span className="truncate">
             {isWebSearch
@@ -154,14 +116,20 @@ export const ToolFallback: ToolCallMessagePartComponent = ({
           </span>
         </span>
         {isWebCrawling ? (
-          <ReactSVG
-            src={ExternalIconUrl}
-            beforeInjection={handleBeforeInjection}
+          <Icon
+            name="btn-external"
+            size={16}
+            color={TOOL_CALL_COLOR}
+            isStroke
           />
         ) : isWebSearch && result === undefined ? null : (
-          <ReactSVG
-            src={!isCollapsed ? ArrowBottomIconUrl : ArrowRightIconUrl}
-            beforeInjection={handleBeforeInjection}
+          <Icon
+            name={!isCollapsed ? "arrow.bottom" : "arrow.right"}
+            size={16}
+            width={8}
+            height={8}
+            color={TOOL_CALL_COLOR}
+            isStroke
           />
         )}
       </div>
@@ -171,15 +139,17 @@ export const ToolFallback: ToolCallMessagePartComponent = ({
             <div className="">
               <p className="flex flex-row items-center justify-between text-[var(--chat-message-tool-call-header-color)] text-[14px] font-bold leading-[20px]">
                 {t("ToolCallArguments")}
-                <ReactSVG
-                  src={isArgsCopied ? CheckedIconUrl : CopyIconUrl}
+                <span
                   onClick={() => setIsArgsCopied(true)}
-                  beforeInjection={
-                    !isArgsCopied
-                      ? handleBeforeInjectionFill
-                      : handleBeforeInjection
-                  }
-                />
+                  className="cursor-pointer"
+                >
+                  <Icon
+                    name={isArgsCopied ? "checked" : "btn-copy"}
+                    size={24}
+                    color={TOOL_CALL_COLOR}
+                    isStroke={isArgsCopied}
+                  />
+                </span>
               </p>
               <pre className="max-h-[200px] overflow-y-auto whitespace-pre-wrap text-[var(--chat-message-tool-call-pre-color)] border border-[var(--chat-message-tool-call-pre-border-color)] bg-[var(--chat-message-tool-call-pre-background-color)] px-[8px] py-[2px] rounded-[4px]">
                 {argsTextFinal ? argsTextFinal : "{}"}
@@ -226,7 +196,7 @@ export const ToolFallback: ToolCallMessagePartComponent = ({
                               >
                                 <div className="flex flex-row items-center gap-[8px] min-w-0 flex-1">
                                   <IconButton
-                                    iconName={SearchIconUrl}
+                                    iconName="btn-web-search"
                                     size={24}
                                     disableHover
                                   />
@@ -236,7 +206,7 @@ export const ToolFallback: ToolCallMessagePartComponent = ({
                                 </div>
                                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                                   <IconButton
-                                    iconName={ExternalIconUrl}
+                                    iconName="btn-external"
                                     size={24}
                                     disableHover
                                   />
@@ -267,15 +237,17 @@ export const ToolFallback: ToolCallMessagePartComponent = ({
                 <>
                   <p className="flex flex-row items-center justify-between text-[var(--chat-message-tool-call-header-color)] text-[14px] font-bold leading-[20px]">
                     {t("ToolCallResult")}
-                    <ReactSVG
-                      src={isResultCopied ? CheckedIconUrl : CopyIconUrl}
+                    <span
                       onClick={() => setIsResultCopied(true)}
-                      beforeInjection={
-                        !isResultCopied
-                          ? handleBeforeInjectionFill
-                          : handleBeforeInjection
-                      }
-                    />
+                      className="cursor-pointer"
+                    >
+                      <Icon
+                        name={isResultCopied ? "checked" : "btn-copy"}
+                        size={24}
+                        color={TOOL_CALL_COLOR}
+                        isStroke={isResultCopied}
+                      />
+                    </span>
                   </p>
                   <pre className="max-h-[200px] overflow-y-auto whitespace-pre-wrap text-[var(--chat-message-tool-call-pre-color)] border border-[var(--chat-message-tool-call-pre-border-color)] bg-[var(--chat-message-tool-call-pre-background-color)] px-[8px] py-[2px] rounded-[4px]">
                     {typeof result === "string"

@@ -1,7 +1,5 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import SearchIconUrl from "@/assets/btn-web-search.svg?url";
-import ToolsIconUrl from "@/assets/tools.svg?url";
 import { DropdownMenu } from "@/components/dropdown";
 import { IconButton } from "@/components/icon-button";
 import { TooltipIconButton } from "@/components/tooltip-icon-button";
@@ -18,7 +16,13 @@ const ServersSettings = () => {
   const trigger = useMemo(
     () => (
       <TooltipIconButton visible={!isOpen} tooltip={t("MCPServers")}>
-        <IconButton iconName={ToolsIconUrl} size={24} isActive={isOpen} />
+        <IconButton
+          iconName="tools"
+          size={24}
+          width={12}
+          height={16}
+          isActive={isOpen}
+        />
       </TooltipIconButton>
     ),
     [isOpen, t]
@@ -31,7 +35,7 @@ const ServersSettings = () => {
         onClick: () => {
           // ignore
         },
-        icon: <IconButton iconName={SearchIconUrl} size={24} disableHover />,
+        icon: <IconButton iconName="btn-web-search" size={24} disableHover />,
         withToggle: true,
         toggleChecked: getWebSearchEnabled() ? webSearchEnabled : false,
         toggleDisabled: !getWebSearchEnabled(),

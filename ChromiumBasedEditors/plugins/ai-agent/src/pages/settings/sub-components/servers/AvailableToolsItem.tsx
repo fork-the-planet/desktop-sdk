@@ -1,11 +1,5 @@
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import ArrowBottomIconSvgUrl from "@/assets/arrow.right.svg?url";
-import NavigationIconSvgUrl from "@/assets/btn-menu-navigation.svg?url";
-import RemoveIconSvgUrl from "@/assets/btn-remove.svg?url";
-import ResetIconSvgUrl from "@/assets/btn-reset.svg?url";
-import MoreIconSvgUrl from "@/assets/more.svg?url";
-import StatusErrorIconUrl from "@/assets/status.error.svg?url";
 import { DropdownMenu } from "@/components/dropdown";
 import { IconButton } from "@/components/icon-button";
 import { Loader } from "@/components/loader";
@@ -107,12 +101,7 @@ const AvailableToolsItem = ({
       items.push(
         {
           icon: (
-            <IconButton
-              iconName={ResetIconSvgUrl}
-              size={20}
-              disableHover
-              isStroke
-            />
+            <IconButton iconName="btn-reset" size={20} disableHover isStroke />
           ),
           text: t("Restart"),
           onClick: () => client.restartCustomServer(name),
@@ -120,7 +109,7 @@ const AvailableToolsItem = ({
         {
           icon: (
             <IconButton
-              iconName={NavigationIconSvgUrl}
+              iconName="btn-menu-navigation"
               size={20}
               disableHover
               isStroke
@@ -137,9 +126,7 @@ const AvailableToolsItem = ({
           isSeparator: true,
         },
         {
-          icon: (
-            <IconButton iconName={RemoveIconSvgUrl} size={20} disableHover />
-          ),
+          icon: <IconButton iconName="btn-remove" size={20} disableHover />,
           text: t("Delete"),
           onClick: () => setDeleteDialogOpen(true),
         }
@@ -178,8 +165,10 @@ const AvailableToolsItem = ({
       >
         <div className="flex items-center gap-[8px]">
           <IconButton
-            iconName={ArrowBottomIconSvgUrl}
+            iconName="arrow.right"
             size={24}
+            width={8}
+            height={8}
             disableHover
             isStroke
             isTransform={opened}
@@ -189,7 +178,7 @@ const AvailableToolsItem = ({
           </p>
           {!isLoadingAction && isStoped ? (
             <IconButton
-              iconName={StatusErrorIconUrl}
+              iconName="status.error"
               size={16}
               disableHover
               noColor
@@ -212,7 +201,7 @@ const AvailableToolsItem = ({
               onOpenChange={setDropdownOpen}
               trigger={
                 <IconButton
-                  iconName={MoreIconSvgUrl}
+                  iconName="more"
                   size={20}
                   isActive={dropdownOpen}
                   insideElement

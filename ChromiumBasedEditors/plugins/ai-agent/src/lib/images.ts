@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 const VECTOR_IMAGE_SCALE = 2.5;
 const IMAGE_NAME_REGEX = /\/([^/@]+?)(?:@([\d.]+)x)?\.(png|svg)(?:\?url)?$/;
 
@@ -8,103 +6,106 @@ type ImageMap = Record<string, string>;
 type ImageCollectionEntry = {
   scale: number;
   src: string;
-  path: string;
 };
 
 export type ImageCollections = Record<string, ImageCollectionEntry[]>;
 
 const parseImageMeta = (path: string) => {
   const match = path.match(IMAGE_NAME_REGEX);
+  if (!match) return null;
 
-  if (!match) {
-    return { name: path, scale: 1 };
-  }
-
-  const [, name, scale, extension] = match;
-
-  const parsedScale = scale ? Number(scale) : 1;
-
+  const [, name, scale, ext] = match;
   return {
     name,
-    scale: extension === "svg" ? VECTOR_IMAGE_SCALE : parsedScale,
+    scale: ext === "svg" ? VECTOR_IMAGE_SCALE : scale ? Number(scale) : 1,
   };
 };
 
-const buildCollectionsByScale = (images: ImageMap): ImageCollections => {
+const buildCollections = (images: ImageMap): ImageCollections => {
   const collections: ImageCollections = {};
 
-  Object.entries(images).forEach(([path, src]) => {
-    const { name, scale } = parseImageMeta(path);
-    const entry: ImageCollectionEntry = { scale, src, path };
+  for (const [path, src] of Object.entries(images)) {
+    const meta = parseImageMeta(path);
+    if (!meta) continue;
 
-    if (!collections[name]) {
-      collections[name] = [];
+    if (!collections[meta.name]) {
+      collections[meta.name] = [];
     }
+    collections[meta.name].push({ scale: meta.scale, src });
+  }
 
-    collections[name].push(entry);
-  });
-
-  Object.values(collections).forEach((entries) => {
+  for (const entries of Object.values(collections)) {
     entries.sort((a, b) => a.scale - b.scale);
-  });
+  }
 
   return collections;
-};
-
-const mergeCollections = (
-  base: ImageCollections,
-  extra: ImageCollections
-): ImageCollections => {
-  const result: ImageCollections = Object.fromEntries(
-    Object.entries(base).map(([name, entries]) => [
-      name,
-      entries.map((entry) => ({ ...entry })),
-    ])
-  );
-
-  Object.entries(extra).forEach(([name, entries]) => {
-    if (!result[name]) {
-      result[name] = [];
-    }
-
-    result[name].push(...entries.map((entry) => ({ ...entry })));
-    result[name].sort((a, b) => a.scale - b.scale);
-  });
-
-  return result;
 };
 
 const lightImageMap = import.meta.glob<string>("../assets/light/*.png", {
   eager: true,
   import: "default",
 }) as ImageMap;
+
 const darkImageMap = import.meta.glob<string>("../assets/dark/*.png", {
   eager: true,
   import: "default",
 }) as ImageMap;
-const svgImageMap = import.meta.glob<string>("../assets/**/*.svg", {
+
+const svgImageMap = import.meta.glob<string>("../assets/*.svg", {
   eager: true,
   import: "default",
   query: "?url",
 }) as ImageMap;
 
-const svgImages = buildCollectionsByScale(svgImageMap);
+const formatsPngMap = import.meta.glob<string>("../assets/formats/*.png", {
+  eager: true,
+  import: "default",
+}) as ImageMap;
 
-export const lightImages = mergeCollections(
-  buildCollectionsByScale(lightImageMap),
-  svgImages
-);
-export const darkImages = mergeCollections(
-  buildCollectionsByScale(darkImageMap),
-  svgImages
-);
+const formatsSvgMap = import.meta.glob<string>("../assets/formats/*.svg", {
+  eager: true,
+  import: "default",
+  query: "?url",
+}) as ImageMap;
 
-export const useImages = () => {
-  const [_theme, _setTheme] = useState<"light" | "dark">("light");
-  const [_scale, _setScale] = useState(1);
+export const lightImages = buildCollections({
+  ...lightImageMap,
+  ...svgImageMap,
+  ...formatsPngMap,
+  ...formatsSvgMap,
+});
+export const darkImages = buildCollections({
+  ...darkImageMap,
+  ...svgImageMap,
+  ...formatsPngMap,
+  ...formatsSvgMap,
+});
+
+type ThemeType = "light" | "dark";
+
+type ImageResult = {
+  src: string;
+  isSvg: boolean;
+};
+
+export const getImageSrc = (
+  name: string,
+  theme: ThemeType,
+  scale: number
+): ImageResult | null => {
+  const collections = theme === "dark" ? darkImages : lightImages;
+  const entries = collections[name];
+
+  if (!entries || entries.length === 0) {
+    return null;
+  }
+
+  // Find best match: first entry with scale >= requested, or highest available
+  const match =
+    entries.find((e) => e.scale >= scale) || entries[entries.length - 1];
 
   return {
-    light: lightImages,
-    dark: darkImages,
+    src: match.src,
+    isSvg: match.scale === VECTOR_IMAGE_SCALE,
   };
 };
