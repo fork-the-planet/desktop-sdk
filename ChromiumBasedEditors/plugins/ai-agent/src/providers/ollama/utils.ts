@@ -84,6 +84,14 @@ export const convertContentPartToString = (
   return "";
 };
 
+/**
+ * Extracts base64 data from a data URL
+ */
+export const extractBase64FromDataUrl = (dataUrl: string): string => {
+  const match = dataUrl.match(/^data:[^;]+;base64,(.+)$/);
+  return match ? match[1] : dataUrl;
+};
+
 // ============================================================================
 // Message Type Converters
 // ============================================================================
@@ -92,15 +100,27 @@ export const convertContentPartToString = (
  * Converts a user message to Ollama format
  */
 export const convertUserMessage = (message: ThreadMessageLike): Message => {
-  const content =
-    typeof message.content === "string"
-      ? message.content
-      : message.content
-          .map(convertContentPartToString)
-          .filter((part) => part !== "")
-          .join("\n\n");
+  if (typeof message.content === "string") {
+    return { role: "user", content: message.content };
+  }
 
-  return { role: "user", content };
+  const textParts: string[] = [];
+  const images: string[] = [];
+
+  for (const part of message.content) {
+    if (part.type === "image") {
+      images.push(extractBase64FromDataUrl(part.image));
+    } else {
+      const text = convertContentPartToString(part);
+      if (text) textParts.push(text);
+    }
+  }
+
+  return {
+    role: "user",
+    content: textParts.join("\n\n"),
+    ...(images.length > 0 && { images }),
+  };
 };
 
 /**

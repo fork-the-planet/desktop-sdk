@@ -49,16 +49,32 @@ const convertContentPartToString = (
   return "";
 };
 
+type ContentPart =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } };
+
 /**
- * Converts user/system message content to string.
+ * Converts user/system message content to Together format.
  */
-const convertUserContent = (message: ThreadMessageLike): string => {
+const convertUserContent = (
+  message: ThreadMessageLike
+): string | ContentPart[] => {
   if (typeof message.content === "string") return message.content;
 
-  return message.content
-    .map(convertContentPartToString)
-    .filter(Boolean)
-    .join("\n\n");
+  const parts: ContentPart[] = [];
+
+  for (const part of message.content) {
+    if (part.type === "text") {
+      parts.push({ type: "text", text: part.text });
+    } else if (part.type === "image") {
+      parts.push({ type: "image_url", image_url: { url: part.image } });
+    } else if (part.type === "file") {
+      const text = convertContentPartToString(part);
+      if (text) parts.push({ type: "text", text });
+    }
+  }
+
+  return parts;
 };
 
 /**

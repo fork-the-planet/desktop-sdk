@@ -17,8 +17,9 @@ const getFileIconName = (type: number): string => {
 
 const ComposerActionAttachment = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const imageInputRef = React.useRef<HTMLInputElement>(null);
 
-  const { addAttachmentFile } = useAttachmentsStore();
+  const { addAttachmentFile, addAttachmentImage } = useAttachmentsStore();
 
   const onOpenChange = (open: boolean) => {
     setIsOpen(open);
@@ -116,6 +117,10 @@ const ComposerActionAttachment = () => {
 
   const items: DropDownItemProps[] = [
     { text: t("AddLocalFile"), onClick: () => selectLocalFile() },
+    {
+      text: t("AddLocalImage"),
+      onClick: () => imageInputRef.current?.click(),
+    },
   ];
 
   if (recentFiles.length > 0) {
@@ -135,8 +140,38 @@ const ComposerActionAttachment = () => {
     });
   }
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        addAttachmentImage({ name: file.name, base64 });
+      };
+      reader.readAsDataURL(file);
+    });
+
+    e.target.value = "";
+  };
+
   return (
-    <DropdownMenu trigger={trigger} items={items} onOpenChange={onOpenChange} />
+    <>
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleImageSelect}
+        className="hidden"
+      />
+      <DropdownMenu
+        trigger={trigger}
+        items={items}
+        onOpenChange={onOpenChange}
+      />
+    </>
   );
 };
 

@@ -16,22 +16,6 @@ const extractFilename = (path: string): string => {
   return path.split(separator).pop() ?? path;
 };
 
-/**
- * Converts a content part to string representation.
- */
-const convertContentPartToString = (
-  part: Exclude<ThreadMessageLike["content"], string>[number]
-): string => {
-  if (part.type === "text") return part.text;
-
-  if (part.type === "file") {
-    const path = JSON.parse(part.mimeType).path;
-    return `File: ${extractFilename(path)}\nFile content:\n${part.data}`;
-  }
-
-  return "";
-};
-
 // ============================================================================
 // Tools Conversion
 // ============================================================================
@@ -59,6 +43,17 @@ export const convertToolsToModelFormat = (
 // ============================================================================
 
 /**
+ * Extracts mime type and base64 data from a data URL.
+ */
+const parseDataUrl = (
+  dataUrl: string
+): { mimeType: string; data: string } | null => {
+  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) return null;
+  return { mimeType: match[1], data: match[2] };
+};
+
+/**
  * Converts user/system message content to GenAI parts.
  */
 const convertUserContent = (message: ThreadMessageLike): Part[] => {
@@ -68,9 +63,28 @@ const convertUserContent = (message: ThreadMessageLike): Part[] => {
 
   const parts: Part[] = [];
   for (const part of message.content) {
-    const text = convertContentPartToString(part);
-    if (text) {
-      parts.push({ text });
+    if (part.type === "text") {
+      parts.push({ text: part.text });
+      continue;
+    }
+
+    if (part.type === "image") {
+      const parsed = parseDataUrl(part.image);
+      if (parsed) {
+        parts.push({
+          inlineData: {
+            mimeType: parsed.mimeType,
+            data: parsed.data,
+          },
+        });
+      }
+      continue;
+    }
+
+    if (part.type === "file") {
+      const meta = JSON.parse(part.mimeType);
+      const filename = extractFilename(meta.path);
+      parts.push({ text: `File: ${filename}\nFile content:\n${part.data}` });
     }
   }
   return parts;

@@ -1,6 +1,7 @@
 import type {
   AppendMessage,
   FileMessagePart,
+  ImageMessagePart,
   ThreadMessageLike,
 } from "@assistant-ui/react";
 import { useEffect, useRef } from "react";
@@ -38,7 +39,12 @@ const useMessages = ({ isReady }: UseMessagesProps) => {
     setAllowAlways,
     setManageToolData,
   } = useServersStore();
-  const { attachmentFiles, clearAttachmentFiles } = useAttachmentsStore();
+  const {
+    attachmentFiles,
+    clearAttachmentFiles,
+    attachmentImages,
+    clearAttachmentImages,
+  } = useAttachmentsStore();
   const { currentProvider } = useProviders();
   const { currentModel } = useModelsStore();
 
@@ -235,6 +241,8 @@ const useMessages = ({ isReady }: UseMessagesProps) => {
 
     let fileContent: FileMessagePart[] = [];
 
+    let imageContent: ImageMessagePart[] = [];
+
     if (attachmentFiles.length > 0) {
       fileContent = attachmentFiles.map((file) => ({
         type: "file",
@@ -245,8 +253,19 @@ const useMessages = ({ isReady }: UseMessagesProps) => {
       clearAttachmentFiles();
     }
 
+    if (attachmentImages.length > 0) {
+      imageContent = attachmentImages.map((image) => ({
+        type: "image",
+        image: image.base64,
+        name: image.name,
+      }));
+
+      clearAttachmentImages();
+    }
+
     const content: ThreadMessageLike["content"] = [
       ...fileContent,
+      ...imageContent,
       { type: "text", text: message.content[0].text },
     ];
 

@@ -68,6 +68,10 @@ export const convertContentPartToString = (
     return `File: ${path}\nFile content:\n${part.data}`;
   }
 
+  if (part.type === "image") {
+    return `[Image: ${part.image}]`;
+  }
+
   return "";
 };
 

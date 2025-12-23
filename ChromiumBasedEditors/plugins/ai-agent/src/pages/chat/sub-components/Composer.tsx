@@ -7,7 +7,7 @@ import useProviders from "@/store/useProviders";
 import { ComposerAction } from "./ComposerAction";
 
 const Composer = () => {
-  const { attachmentFiles } = useAttachmentsStore();
+  const { attachmentFiles, attachmentImages } = useAttachmentsStore();
   const { currentProvider } = useProviders();
   const { currentModel } = useModelsStore();
   const { t } = useTranslation();
@@ -15,10 +15,13 @@ const Composer = () => {
   return (
     <div className="relative mx-auto flex w-full max-w-[var(--thread-max-width)] flex-col gap-[8px] px-[var(--thread-padding-x)] pb-[16px]">
       <ComposerPrimitive.Root className="composer-root relative flex w-full flex-col gap-[16px] rounded-[16px] border px-[24px] py-[16px] box-border">
-        {attachmentFiles.length ? (
+        {attachmentFiles.length || attachmentImages.length ? (
           <div className="flex flex-row gap-[8px] overflow-x-auto">
             {attachmentFiles.map((file) => (
               <FileItem key={file.path} file={file} />
+            ))}
+            {attachmentImages.map((image) => (
+              <FileItem key={image.name} file={image} />
             ))}
           </div>
         ) : null}

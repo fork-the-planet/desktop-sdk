@@ -4,10 +4,7 @@ import type {
   ToolResultBlockParam,
   ToolUnion,
 } from "@anthropic-ai/sdk/resources/index.mjs";
-import type {
-  CompleteAttachment,
-  ThreadMessageLike,
-} from "@assistant-ui/react";
+import type { ThreadMessageLike } from "@assistant-ui/react";
 import type { TMCPItem } from "@/lib/types";
 
 // ============================================================================
@@ -51,14 +48,14 @@ const convertImageToBlock = (imageDataUrl: string): ContentBlockParam => {
   };
 };
 
-export const convertImageAttachmentsToContent = (
-  attachments: readonly CompleteAttachment[]
-): ContentBlockParam[] =>
-  attachments.flatMap(({ content }) =>
-    content
-      .filter((part) => part.type === "image")
-      .map((part) => convertImageToBlock(part.image))
-  );
+// export const convertImageAttachmentsToContent = (
+//   attachments: readonly CompleteAttachment[]
+// ): ContentBlockParam[] =>
+//   attachments.flatMap(({ content }) =>
+//     content
+//       .filter((part) => part.type === "image")
+//       .map((part) => convertImageToBlock(part.image))
+//   );
 
 // ============================================================================
 // Tools Conversion
@@ -99,9 +96,16 @@ const convertFilePart = (part: ContentPart): ContentBlockParam => {
   };
 };
 
+const convertImagePart = (part: ContentPart): ContentBlockParam => {
+  if (part.type !== "image") return { type: "text", text: "" };
+
+  return convertImageToBlock(part.image);
+};
+
 const convertUserContentPart = (part: ContentPart): ContentBlockParam => {
   if (part.type === "text") return { type: "text", text: part.text };
   if (part.type === "file") return convertFilePart(part);
+  if (part.type === "image") return convertImagePart(part);
 
   return { type: "text", text: "" };
 };
@@ -116,9 +120,9 @@ const convertUserMessage = (message: ThreadMessageLike): MessageParam[] => {
       ? message.content
       : message.content.map(convertUserContentPart);
 
-  if (message.attachments?.length && Array.isArray(content)) {
-    content.push(...convertImageAttachmentsToContent(message.attachments));
-  }
+  // if (message.attachments?.length && Array.isArray(content)) {
+  //   content.push(...convertImageAttachmentsToContent(message.attachments));
+  // }
 
   return [{ role: "user", content }];
 };

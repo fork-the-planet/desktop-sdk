@@ -41,7 +41,11 @@ export type TAttachmentFile = {
   path: string;
   content: string;
   type: number;
-  isImage?: boolean;
+};
+
+export type TAttachmentImage = {
+  name: string;
+  base64: string;
 };
 
 export type TProcess = {

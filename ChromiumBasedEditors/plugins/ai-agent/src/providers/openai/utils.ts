@@ -59,6 +59,15 @@ const convertUserContent = (
       };
     }
 
+    if (part.type === "image") {
+      return {
+        type: "image_url",
+        image_url: {
+          url: part.image,
+        },
+      };
+    }
+
     // Fallback for unknown part types
     return { type: "text", text: "" };
   });
