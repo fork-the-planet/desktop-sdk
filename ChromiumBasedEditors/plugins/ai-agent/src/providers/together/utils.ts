@@ -62,16 +62,26 @@ const convertUserContent = (
   if (typeof message.content === "string") return message.content;
 
   const parts: ContentPart[] = [];
+  let hasImages = false;
 
   for (const part of message.content) {
     if (part.type === "text") {
       parts.push({ type: "text", text: part.text });
     } else if (part.type === "image") {
+      hasImages = true;
       parts.push({ type: "image_url", image_url: { url: part.image } });
     } else if (part.type === "file") {
       const text = convertContentPartToString(part);
       if (text) parts.push({ type: "text", text });
     }
+  }
+
+  // Return string if no images, array otherwise
+  if (!hasImages) {
+    return parts
+      .filter((p): p is { type: "text"; text: string } => p.type === "text")
+      .map((p) => p.text)
+      .join("\n\n");
   }
 
   return parts;

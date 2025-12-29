@@ -96,7 +96,7 @@ const convertFilePart = (part: ContentPart): ContentBlockParam => {
   };
 };
 
-const convertImagePart = (part: ContentPart): ContentBlockParam => {
+export const convertImagePart = (part: ContentPart): ContentBlockParam => {
   if (part.type !== "image") return { type: "text", text: "" };
 
   return convertImageToBlock(part.image);
@@ -142,11 +142,7 @@ const convertAssistantMessage = (
   const result: MessageParam[] = [];
 
   if (typeof message.content === "string") {
-    const content: ContentBlockParam[] = [
-      { type: "text", text: message.content },
-    ];
-
-    return [{ role: "assistant", content }];
+    return [{ role: "assistant", content: message.content || [] }];
   }
 
   let content: ContentBlockParam[] = [];

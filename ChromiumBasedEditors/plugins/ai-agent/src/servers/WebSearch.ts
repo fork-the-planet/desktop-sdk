@@ -88,6 +88,7 @@ class WebSearch {
         return JSON.stringify(result);
       } catch (e) {
         console.error("WebSearch error:", e);
+        return JSON.stringify({ error: e });
       }
     }
     return JSON.stringify(args);

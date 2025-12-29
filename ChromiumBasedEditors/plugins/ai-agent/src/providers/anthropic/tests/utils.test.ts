@@ -1,38 +1,26 @@
 import type { ThreadMessageLike } from "@assistant-ui/react";
 import { describe, expect, it } from "vitest";
 import {
-  convertImageAttachmentsToContent,
+  convertImagePart,
   convertMessagesToModelFormat,
   convertToolsToModelFormat,
 } from "../utils";
 
 describe("anthropic utils", () => {
   // ==========================================================================
-  // convertImageAttachmentsToContent
+  // convertImagePart
   // ==========================================================================
 
-  describe("convertImageAttachmentsToContent", () => {
-    it("should convert image attachments to content blocks", () => {
-      const attachments = [
-        {
-          id: "1",
-          type: "image" as const,
-          name: "test.png",
-          contentType: "image/png",
-          content: [
-            {
-              type: "image" as const,
-              image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==",
-            },
-          ],
-          status: { type: "complete" as const },
-        },
-      ];
+  describe("convertImagePart", () => {
+    it("should convert image part to content block", () => {
+      const imagePart = {
+        type: "image" as const,
+        image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==",
+      };
 
-      const result = convertImageAttachmentsToContent(attachments);
+      const result = convertImagePart(imagePart);
 
-      expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({
+      expect(result).toEqual({
         type: "image",
         source: {
           type: "base64",
@@ -43,77 +31,40 @@ describe("anthropic utils", () => {
     });
 
     it("should map jpg to jpeg mime type", () => {
-      const attachments = [
-        {
-          id: "1",
-          type: "image" as const,
-          name: "test.jpg",
-          contentType: "image/jpg",
-          content: [
-            {
-              type: "image" as const,
-              image: "data:image/jpg;base64,/9j/4AAQSkZJRg==",
-            },
-          ],
-          status: { type: "complete" as const },
-        },
-      ];
+      const imagePart = {
+        type: "image" as const,
+        image: "data:image/jpg;base64,/9j/4AAQSkZJRg==",
+      };
 
-      const result = convertImageAttachmentsToContent(attachments);
+      const result = convertImagePart(imagePart);
 
-      expect(result[0]).toMatchObject({
+      expect(result).toMatchObject({
         source: { media_type: "image/jpeg" },
       });
     });
 
     it("should default to jpeg for unknown mime types", () => {
-      const attachments = [
-        {
-          id: "1",
-          type: "image" as const,
-          name: "test.bmp",
-          contentType: "image/bmp",
-          content: [
-            {
-              type: "image" as const,
-              image: "data:image/bmp;base64,Qk0=",
-            },
-          ],
-          status: { type: "complete" as const },
-        },
-      ];
+      const imagePart = {
+        type: "image" as const,
+        image: "data:image/bmp;base64,Qk0=",
+      };
 
-      const result = convertImageAttachmentsToContent(attachments);
+      const result = convertImagePart(imagePart);
 
-      expect(result[0]).toMatchObject({
+      expect(result).toMatchObject({
         source: { media_type: "image/jpeg" },
       });
     });
 
-    it("should filter non-image content", () => {
-      const attachments = [
-        {
-          id: "1",
-          type: "file" as const,
-          name: "test.txt",
-          contentType: "text/plain",
-          content: [
-            {
-              type: "text" as const,
-              text: "hello",
-            },
-          ],
-          status: { type: "complete" as const },
-        },
-      ];
+    it("should return empty text for non-image content", () => {
+      const textPart = {
+        type: "text" as const,
+        text: "hello",
+      };
 
-      const result = convertImageAttachmentsToContent(
-        attachments as unknown as Parameters<
-          typeof convertImageAttachmentsToContent
-        >[0]
-      );
+      const result = convertImagePart(textPart);
 
-      expect(result).toHaveLength(0);
+      expect(result).toEqual({ type: "text", text: "" });
     });
   });
 
@@ -220,21 +171,9 @@ describe("anthropic utils", () => {
         const messages: ThreadMessageLike[] = [
           {
             role: "user",
-            content: [{ type: "text", text: "Check this image" }],
-            attachments: [
-              {
-                id: "1",
-                type: "image" as const,
-                name: "photo.png",
-                contentType: "image/png",
-                content: [
-                  {
-                    type: "image" as const,
-                    image: "data:image/png;base64,abc123",
-                  },
-                ],
-                status: { type: "complete" as const },
-              },
+            content: [
+              { type: "text", text: "Check this image" },
+              { type: "image", image: "data:image/png;base64,abc123" },
             ],
           },
         ];
@@ -350,7 +289,12 @@ describe("anthropic utils", () => {
 
         const result = convertMessagesToModelFormat(messages);
 
-        expect(result).toEqual([]);
+        expect(result).toEqual([
+          {
+            content: [],
+            role: "assistant",
+          },
+        ]);
       });
 
       it("should convert assistant message with text parts", () => {
