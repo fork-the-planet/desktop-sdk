@@ -158,6 +158,7 @@ class TogetherProvider extends AbstractBaseProvider<
         model: this.modelKey,
         tools: this.tools,
         stream: true,
+        reasoning_effort: "low",
       });
 
       this.prevMessages.push(...convertedMessages);

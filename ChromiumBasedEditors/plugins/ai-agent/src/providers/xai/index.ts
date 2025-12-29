@@ -17,18 +17,44 @@ class XAIProvider extends OpenAIProvider {
     try {
       const response = (await client.models.list()).data;
 
-      const models =
+      const models: Model[] =
         xaiInfo.modelFilters.length > 0
-          ? response.filter((model) => xaiInfo.modelFilters.includes(model.id))
-          : response;
+          ? response
+              .filter((model) => xaiInfo.modelFilters.includes(model.id))
+              .flatMap((model) => {
+                const baseName = xaiInfo.modelNames[model.id] || model.id;
 
-      return models
-        .map((model) => ({
-          id: model.id,
-          name: model.id,
-          provider: "xai" as const,
-        }))
-        .reverse();
+                // const isReasoning = model.id.endsWith("fast-reasoning");
+
+                // if (isReasoning) {
+                //   return xaiInfo.thinkingMods.map((i) => {
+                //     const modName = i.replace("-", "");
+                //     const isNone = i === "-none";
+                //     return {
+                //       id: isNone
+                //         ? model.id
+                //         : `${model.id}${xaiInfo.thinkingSuffix}${i}`,
+                //       name: isNone
+                //         ? baseName
+                //         : `${baseName.replace("Reasoning", "")} ${modName.charAt(0).toUpperCase() + modName.slice(1)} Reasoning`,
+                //       provider: "xai" as const,
+                //     };
+                //   });
+                // }
+
+                return {
+                  id: model.id,
+                  name: baseName,
+                  provider: "xai" as const,
+                };
+              })
+          : response.map((model) => ({
+              id: model.id,
+              name: model.id,
+              provider: "xai" as const,
+            }));
+
+      return models.reverse();
     } catch {
       return [];
     }

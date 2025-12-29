@@ -206,12 +206,15 @@ class OpenAIProvider extends AbstractBaseProvider<
     if (!this.client) return;
 
     const model = this.modelKey.split(openaiInfo.thinkingSuffix)[0];
-    const reasoningEffort = this.modelKey.split(openaiInfo.thinkingSuffix)[1];
+    const reasoningEffort = this.modelKey.includes(openaiInfo.thinkingSuffix)
+      ? this.modelKey.split(openaiInfo.thinkingSuffix)[1]
+      : undefined;
 
-    const isNone = reasoningEffort === "-none";
+    const isNone = reasoningEffort === "-none" || !reasoningEffort;
+
     const reasoning_effort = isNone
       ? undefined
-      : (reasoningEffort.slice(1) as "low" | "medium" | "high");
+      : (reasoningEffort?.slice(1) as "low" | "medium" | "high");
 
     const stream = await this.client.chat.completions.create({
       messages: [systemMessage, ...this.prevMessages, ...convertedMessages],

@@ -3,14 +3,12 @@ export const xaiInfo = {
   baseUrl: "https://api.x.ai/v1",
   modelFilters: [
     "grok-4-1-fast-non-reasoning",
+    "grok-4-1-fast-reasoning",
     "grok-4-0709",
-    "grok-3-mini",
-    "grok-3",
   ] as string[],
   modelNames: {
-    "grok-4-1-fast-non-reasoning": "Grok 4.1",
     "grok-4-0709": "Grok 4",
-    "grok-3-mini": "Grok 3 Mini",
-    "grok-3": "Grok 3",
-  },
+    "grok-4-1-fast-non-reasoning": "Grok 4.1 Fast",
+    "grok-4-1-fast-reasoning": "Grok 4.1 Fast Reasoning",
+  } as Record<string, string>,
 };
