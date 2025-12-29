@@ -5,7 +5,7 @@ import {
   useMessage,
 } from "@assistant-ui/react";
 import { motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/icon";
 import { IconButton } from "@/components/icon-button";
@@ -16,56 +16,33 @@ import { TooltipIconButton } from "@/components/tooltip-icon-button";
 import { convertMessagesToMd, getMessageTitleFromMd } from "@/lib/utils";
 import useMessageStore from "@/store/useMessageStore";
 
-const ThinkingMarkdownText = ({ text }: { text: string }) => {
+const ThinkingMarkdownText = ({
+  text,
+  type,
+  parentId,
+}: {
+  text: string;
+  type: string;
+  parentId?: string;
+}) => {
+  const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const { thinkingContent, responseContent, isThinkingComplete } =
-    useMemo(() => {
-      // Strip signature comment from content for display
-      const stripSignature = (content: string) =>
-        content.replace(/<!--sig:[\s\S]*?-->/g, "").trim();
-
-      // Check for complete thinking block first
-      const completeMatch = text.match(/<think>([\s\S]*?)<\/think>/);
-      if (completeMatch) {
-        return {
-          thinkingContent: stripSignature(completeMatch[1] || ""),
-          responseContent: text.replace(/<think>[\s\S]*?<\/think>\n*/g, ""),
-          isThinkingComplete: true,
-        };
-      }
-
-      // Check for incomplete thinking block (streaming)
-      const incompleteMatch = text.match(/<think>([\s\S]*)/);
-      if (incompleteMatch) {
-        return {
-          thinkingContent: stripSignature(incompleteMatch[1] || ""),
-          responseContent: "",
-          isThinkingComplete: false,
-        };
-      }
-
-      return {
-        thinkingContent: null,
-        responseContent: text,
-        isThinkingComplete: true,
-      };
-    }, [text]);
 
   return (
     <>
-      {thinkingContent && (
+      {type === "reasoning" ? (
         <div className="my-[8px] flex w-full flex-col">
           <div
             className="flex items-center gap-[10px] cursor-pointer mb-[8px]"
             onClick={() => setIsCollapsed((val) => !val)}
           >
-            {isThinkingComplete ? (
+            {parentId ? (
               <Icon name="tool.called" size={16} noColor />
             ) : (
               <Loader size={16} />
             )}
             <span className="text-[14px] font-normal leading-[20px] text-[var(--chat-message-color)] ">
-              Thinking
+              {t("Thinking")}
             </span>
             <Icon
               name="arrow.right"
@@ -78,12 +55,13 @@ const ThinkingMarkdownText = ({ text }: { text: string }) => {
           </div>
           {!isCollapsed && (
             <div className="ps-[26px]">
-              <MarkdownContent>{thinkingContent}</MarkdownContent>
+              <MarkdownContent>{text}</MarkdownContent>
             </div>
           )}
         </div>
+      ) : (
+        <MarkdownContent>{text}</MarkdownContent>
       )}
-      {responseContent && <MarkdownContent>{responseContent}</MarkdownContent>}
     </>
   );
 };
@@ -126,8 +104,6 @@ const AssistantActionBar = () => {
   return (
     <ActionBarPrimitive.Root
       hidden={isStreamRunning}
-      // autohide="not-last"
-      // autohideFloat="single-branch"
       className="col-start-3 row-start-2 ml-3 mt-3 flex gap-[8px]"
     >
       <ActionBarPrimitive.Copy asChild>
@@ -150,11 +126,6 @@ const AssistantActionBar = () => {
           />
         </TooltipIconButton>
       </div>
-      {/* <ActionBarPrimitive.Reload asChild>
-        <TooltipIconButton tooltip="Refresh">
-          <RefreshCwIcon />
-        </TooltipIconButton>
-      </ActionBarPrimitive.Reload> */}
     </ActionBarPrimitive.Root>
   );
 };
@@ -171,8 +142,9 @@ export const AssistantMessage = () => {
         <div className="leading-[20px] text-[14px] col-span-2 col-start-2 row-start-1 ml-4 break-words leading-7 text-[var(--chat-message-color)]">
           <MessagePrimitive.Content
             components={{
-              Text: ThinkingMarkdownText,
               tools: { Fallback: ToolFallback },
+              Reasoning: ThinkingMarkdownText,
+              Text: ThinkingMarkdownText,
             }}
           />
           <MessageError />
