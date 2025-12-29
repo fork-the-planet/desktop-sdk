@@ -103,9 +103,9 @@ export const ToolFallback: ToolCallMessagePartComponent = ({
         ) : null}
         <span className="flex items-center gap-[8px] rounded-[4px] ps-[4px] pe-[8px] text-[14px] leading-[20px] font-normal text-[var(--chat-message-tool-call-name-color)] bg-[var(--chat-message-tool-call-name-background-color)] min-w-0 w-fit">
           {isWebSearch ? (
-            <Icon name="btn-web-search" size={16} color={TOOL_CALL_COLOR} />
+            <Icon name="btn-web-search" size={24} color={TOOL_CALL_COLOR} />
           ) : !isWebCrawling ? (
-            <Icon name="code" size={16} color={TOOL_CALL_COLOR} isStroke />
+            <Icon name="code" size={24} color={TOOL_CALL_COLOR} isStroke />
           ) : null}
           <span className="truncate">
             {isWebSearch
