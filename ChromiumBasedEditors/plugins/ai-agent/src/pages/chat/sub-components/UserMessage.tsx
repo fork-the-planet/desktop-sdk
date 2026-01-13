@@ -1,14 +1,15 @@
 import { MessagePrimitive, useMessage } from "@assistant-ui/react";
-
 import { motion } from "framer-motion";
-
-import type { TAttachmentFile } from "@/lib/types";
 import { FileItem } from "@/components/file-item";
-
 import { MarkdownText } from "@/components/markdown";
+import type { TAttachmentFile } from "@/lib/types";
 
 export const UserMessage = () => {
   const message = useMessage();
+
+  const images = message.content
+    .filter((item) => item.type === "image")
+    .map((item) => item.image);
 
   const files: TAttachmentFile[] = message.content
     .filter((item) => item.type === "file")
@@ -19,6 +20,7 @@ export const UserMessage = () => {
         path: JSON.parse(item.mimeType).path,
       };
     });
+
   return (
     <MessagePrimitive.Root asChild>
       <motion.div
@@ -27,9 +29,17 @@ export const UserMessage = () => {
         animate={{ y: 0, opacity: 1 }}
         data-role="user"
       >
-        {files.length > 0 ? (
+        {images.length > 0 || files.length > 0 ? (
           <div className="col-span-full col-start-1 row-start-1 mb-[8px] overflow-x-auto">
             <div className="flex flex-row gap-[8px] justify-end w-max ml-auto">
+              {images.map((src) => (
+                <img
+                  key={src}
+                  src={src}
+                  alt=""
+                  className="h-[72px] w-[72px] rounded-[8px] object-cover"
+                />
+              ))}
               {files.map((file) => (
                 <FileItem key={file.path} file={file} withoutClose />
               ))}
@@ -38,7 +48,9 @@ export const UserMessage = () => {
         ) : null}
 
         <div className="bg-[var(--chat-user-message-background)] text-[var(--chat-user-message-color)] col-start-2 break-words rounded-[16px] rounded-br-[0px] px-[12px] py-[8px]">
-          <MessagePrimitive.Content components={{ Text: MarkdownText }} />
+          <MessagePrimitive.Content
+            components={{ Text: MarkdownText, Image: () => null }}
+          />
         </div>
       </motion.div>
     </MessagePrimitive.Root>

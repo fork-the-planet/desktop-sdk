@@ -9,6 +9,8 @@ export type Thread = {
   threadId: string;
   title?: string;
   lastEditDate?: number;
+  provider?: TProvider;
+  model?: Model;
 };
 
 export type ProviderType =
@@ -16,7 +18,11 @@ export type ProviderType =
   | "ollama"
   | "openai"
   | "together"
-  | "openrouter";
+  | "openrouter"
+  | "genai"
+  // | "deepseek"
+  | "xai"
+  | "lm-studio";
 
 export type Model = {
   id: string;
@@ -35,7 +41,11 @@ export type TAttachmentFile = {
   path: string;
   content: string;
   type: number;
-  isImage?: boolean;
+};
+
+export type TAttachmentImage = {
+  name: string;
+  base64: string;
 };
 
 export type TProcess = {

@@ -1,5 +1,5 @@
 import type { ThreadMessageLike } from "@assistant-ui/react";
-import { clsx, type ClassValue } from "clsx";
+import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export const cn = (...inputs: ClassValue[]) => {
@@ -41,6 +41,10 @@ export const convertMessagesToMd = (messages: ThreadMessageLike[]) => {
 
 export const removeSpecialCharacter = (str: string) => {
   return str.replace(/[\\/:*"<>|?]/g, "");
+};
+
+export const sanitizeProviderName = (str: string) => {
+  return removeSpecialCharacter(str);
 };
 
 export const getMessageTitleFromMd = (md: string) => {

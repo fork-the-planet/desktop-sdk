@@ -1,7 +1,5 @@
 import type { TProcess } from "./lib/types";
 
-export {};
-
 declare global {
   interface Window {
     AscSimpleRequest: {
@@ -10,7 +8,7 @@ declare global {
         method: string;
         headers: Record<string, string>;
         body: string;
-        complete: (e: { responseText: string }) => void;
+        complete: (e: { responseText: string; responseStatus: number }) => void;
         error: (e: { statusCode: number }) => void;
       }) => void;
     };
