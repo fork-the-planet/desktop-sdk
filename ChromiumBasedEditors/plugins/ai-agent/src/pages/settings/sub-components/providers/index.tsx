@@ -1,22 +1,17 @@
 import React from "react";
-
 import { useTranslation } from "react-i18next";
-
-import useProviders from "@/store/useProviders";
-
-import { cn } from "@/lib/utils";
-
 import { Button } from "@/components/button";
-
-import { ProviderItem } from "./ProviderItem";
+import { cn } from "@/lib/utils";
+import useProviders from "@/store/useProviders";
 import { AddProviderDialog } from "./AddProviderDialog";
+import { ProviderItem } from "./ProviderItem";
 
 type ProvidersProps = {
   isActive: boolean;
 };
 
 const Providers = ({ isActive }: ProvidersProps) => {
-  const [addProvderVisible, setAddProvderVisible] = React.useState(false);
+  const [addProviderVisible, setAddProviderVisible] = React.useState(false);
 
   const { providers } = useProviders();
 
@@ -26,7 +21,7 @@ const Providers = ({ isActive }: ProvidersProps) => {
     <>
       <Button
         className="max-w-[fit-content]"
-        onClick={() => setAddProvderVisible(true)}
+        onClick={() => setAddProviderVisible(true)}
         disabled={!isActive}
       >
         {t("AddProvider")}
@@ -42,8 +37,8 @@ const Providers = ({ isActive }: ProvidersProps) => {
           <ProviderItem key={provider.name} provider={provider} />
         ))}
       </div>
-      {addProvderVisible ? (
-        <AddProviderDialog onClose={() => setAddProvderVisible(false)} />
+      {addProviderVisible ? (
+        <AddProviderDialog onClose={() => setAddProviderVisible(false)} />
       ) : null}
     </>
   );

@@ -45,7 +45,7 @@ class WebSearch {
   };
 
   webSearch = async (args: Record<string, unknown>) => {
-    if (this.webSearchData?.provider === "exa") {
+    if (this.webSearchData?.provider === "Exa") {
       try {
         const result = await new Promise<{
           error?: number;
@@ -57,7 +57,7 @@ class WebSearch {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "x-api-key": this.webSearchData!.key,
+              "x-api-key": this.webSearchData?.key ?? "",
             },
             body: JSON.stringify({
               query: args.query,
@@ -65,13 +65,18 @@ class WebSearch {
               numResults: 5,
               livecrawl: "preferred",
             }),
-            complete: function (e: { responseText: string }) {
-              const data = JSON.parse(e.responseText).results;
+            complete: (e: { responseText: string }) => {
+              const parsedData = JSON.parse(e.responseText);
+              const data = parsedData.error
+                ? {
+                    error: parsedData.error,
+                  }
+                : parsedData.results;
               resolve({ data });
             },
-            error: function (e: { statusCode: number }) {
+            error: (e: { statusCode: number }) => {
               console.log("Request failed with status:", e.statusCode);
-              if (e.statusCode == -102) e.statusCode = 404;
+              if (e.statusCode === -102) e.statusCode = 404;
               resolve({
                 error: e.statusCode,
                 message: `Network error: ${e.statusCode}`,
@@ -83,13 +88,14 @@ class WebSearch {
         return JSON.stringify(result);
       } catch (e) {
         console.error("WebSearch error:", e);
+        return JSON.stringify({ error: e });
       }
     }
     return JSON.stringify(args);
   };
 
   webCrawling = async (args: Record<string, unknown>) => {
-    if (this.webSearchData?.provider === "exa") {
+    if (this.webSearchData?.provider === "Exa") {
       try {
         const result = await new Promise<{
           error?: number;
@@ -101,19 +107,24 @@ class WebSearch {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "x-api-key": this.webSearchData!.key,
+              "x-api-key": this.webSearchData?.key ?? "",
             },
             body: JSON.stringify({
               urls: args.urls,
               text: true,
             }),
-            complete: function (e: { responseText: string }) {
-              const data = JSON.parse(e.responseText).results;
+            complete: (e: { responseText: string }) => {
+              const parsedData = JSON.parse(e.responseText);
+              const data = parsedData.error
+                ? {
+                    error: parsedData.error,
+                  }
+                : parsedData.results;
               resolve({ data });
             },
-            error: function (e: { statusCode: number }) {
+            error: (e: { statusCode: number }) => {
               console.log("Request failed with status:", e.statusCode);
-              if (e.statusCode == -102) e.statusCode = 404;
+              if (e.statusCode === -102) e.statusCode = 404;
               resolve({
                 error: e.statusCode,
                 message: `Network error: ${e.statusCode}`,
@@ -180,6 +191,8 @@ class WebSearch {
         },
       },
     ]);
+
+    window.dispatchEvent(new CustomEvent("tools-changed"));
   };
 
   getWebSearchEnabled = () => {

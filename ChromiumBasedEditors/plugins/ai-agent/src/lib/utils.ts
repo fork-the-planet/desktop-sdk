@@ -1,5 +1,5 @@
 import type { ThreadMessageLike } from "@assistant-ui/react";
-import { clsx, type ClassValue } from "clsx";
+import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export const cn = (...inputs: ClassValue[]) => {
@@ -9,35 +9,50 @@ export const cn = (...inputs: ClassValue[]) => {
 export const convertMessagesToMd = (messages: ThreadMessageLike[]) => {
   let content = "";
 
-  messages.forEach((message, index) => {
-    const role = message.role === "user" ? "**User**" : "**Assistant**";
-    content += `## ${role}\n\n`;
-
+  messages.forEach((message) => {
     if (Array.isArray(message.content)) {
       message.content.forEach((part: ThreadMessageLike["content"]) => {
         if (typeof part === "string") {
-          content += `${part}\n\n`;
+          content += message.role === "user" ? `## ${part}\n\n` : `${part}\n\n`;
           return;
         }
 
         if (!part || typeof part !== "object" || !("type" in part)) return;
 
         if (part.type === "text" && "text" in part) {
-          content += `${part.text}\n\n`;
+          content +=
+            message.role === "user"
+              ? `## ${part.text}\n\n`
+              : `${part.text}\n\n`;
         } else if (part.type === "tool-call" && "toolName" in part) {
           return;
         }
       });
     } else if (typeof message.content === "string") {
-      content += `${message.content}\n\n`;
-    }
-
-    if (index < messages.length - 1) {
-      content += `---\n\n`;
+      content +=
+        message.role === "user"
+          ? `## ${message.content}\n\n`
+          : `${message.content}\n\n`;
     }
   });
 
   return content;
+};
+
+export const removeSpecialCharacter = (str: string) => {
+  return str.replace(/[\\/:*"<>|?]/g, "");
+};
+
+export const sanitizeProviderName = (str: string) => {
+  return removeSpecialCharacter(str);
+};
+
+export const getMessageTitleFromMd = (md: string) => {
+  const lines = md.split("\n");
+
+  const title = lines[0].replace("## ", "");
+
+  return removeSpecialCharacter(title).substring(0, 30);
 };
 
 export const isDocument = (type: number) => {

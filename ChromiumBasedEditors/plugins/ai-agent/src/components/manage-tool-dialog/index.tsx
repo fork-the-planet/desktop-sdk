@@ -1,12 +1,10 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-
 import useServersStore from "@/store/useServersStore";
-
 import { Button } from "../button";
+import { Checkbox } from "../checkbox";
 import { Dialog, DialogContent } from "../dialog";
 import { ToolFallback } from "../tool-fallback";
-import { Checkbox } from "../checkbox";
 
 type ManageToolDialogProps = {
   onAllow: (allowAlways: boolean) => void;
@@ -24,10 +22,10 @@ const ManageToolDialog = ({
 
   const [isAllowAlways, setIsAllowAlways] = useState(false);
 
-  const onAllowAction = () => {
+  const onAllowAction = React.useCallback(() => {
     onAllow(isAllowAlways);
     onClose();
-  };
+  }, [onAllow, isAllowAlways, onClose]);
 
   const onDenyAction = () => {
     onDeny();
@@ -35,6 +33,21 @@ const ManageToolDialog = ({
   };
 
   const toolCall = manageToolData?.message?.content[manageToolData.idx];
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onAllowAction();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onAllowAction]);
 
   if (
     !toolCall ||
@@ -53,13 +66,15 @@ const ManageToolDialog = ({
           </p>
           <ToolFallback
             type="tool-call"
-            toolCallId={toolCall.toolCallId!}
+            toolCallId={toolCall.toolCallId ?? ""}
             args={toolCall.args ?? {}}
             toolName={toolCall.toolName}
             argsText={toolCall.argsText ?? "{}"}
             result={toolCall.result}
             status={{ type: "running" }}
-            addResult={() => {}}
+            addResult={() => {
+              // ingore
+            }}
           />
           <p className="font-[14px] leading-[20px] font-normal text-[var(--tool-fallback-color)]">
             {t("ReviewEachAction")}

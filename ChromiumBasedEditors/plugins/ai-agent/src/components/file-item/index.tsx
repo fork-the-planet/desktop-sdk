@@ -1,46 +1,69 @@
-import { ReactSVG } from "react-svg";
-
-import type { TAttachmentFile } from "@/lib/types";
-import { cn } from "@/lib/utils";
-
+import { Icon } from "@/components/icon";
+import type { TAttachmentFile, TAttachmentImage } from "@/lib/types";
+import {
+  cn,
+  isDocument,
+  isPdf,
+  isPresentation,
+  isSpreadsheet,
+} from "@/lib/utils";
 import useAttachmentsStore from "@/store/useAttachmentsStore";
-
-import BtnCloseIconUrl from "@/assets/btn-close.small.svg?url";
-import DocumentsIconUrl from "@/assets/formats/32/documents.svg?url";
-import PdfIconUrl from "@/assets/formats/32/pdf.svg?url";
-import SpreadsheetsIconUrl from "@/assets/formats/32//spreadsheets.svg?url";
-
 import { IconButton } from "../icon-button";
 
 type FileItemProps = {
-  file: TAttachmentFile;
+  file: TAttachmentFile | TAttachmentImage;
   withoutClose?: boolean;
 };
 
+const getFileIconName = (
+  isPDFFile: boolean,
+  isDocumentFile: boolean,
+  isSpreadsheetFile: boolean,
+  isPresentationFile: boolean
+): string => {
+  if (isPDFFile) return "pdf";
+  if (isDocumentFile) return "documents";
+  if (isSpreadsheetFile) return "spreadsheets";
+  if (isPresentationFile) return "presentations";
+  return "unknown-format";
+};
+
 const FileItem = ({ file, withoutClose }: FileItemProps) => {
-  const { deleteAttachmentFile } = useAttachmentsStore();
+  const { deleteAttachmentFile, deleteAttachmentImage } = useAttachmentsStore();
 
   const handleDelete = () => {
-    deleteAttachmentFile(file.path);
+    if ("path" in file && file.path) deleteAttachmentFile(file.path);
+    if ("name" in file && file.name) deleteAttachmentImage(file.name);
   };
 
-  const name = file.path.includes("\\")
-    ? file.path.split("\\").pop() ?? ""
-    : file.path.split("/").pop() ?? "";
+  const name =
+    "path" in file
+      ? file.path.includes("\\")
+        ? (file.path.split("\\").pop() ?? "")
+        : (file.path.split("/").pop() ?? "")
+      : file.name;
   const extension = name.split(".").pop() ?? "";
   const nameWithoutExtension = name.replace(`.${extension}`, "");
 
-  const icon =
-    extension === "pdf"
-      ? PdfIconUrl
-      : extension === "docx"
-      ? DocumentsIconUrl
-      : SpreadsheetsIconUrl;
+  const isDocumentFile = "type" in file ? isDocument(file.type) : false;
+  const isPDFFile = "type" in file ? isPdf(file.type) : false;
+  const isSpreadsheetFile = "type" in file ? isSpreadsheet(file.type) : false;
+  const isPresentationFile = "type" in file ? isPresentation(file.type) : false;
+
+  const iconName = getFileIconName(
+    isPDFFile,
+    isDocumentFile,
+    isSpreadsheetFile,
+    isPresentationFile
+  );
+
+  const isImage = "base64" in file;
 
   return (
     <div
       className={cn(
-        " w-fit flex flex-row gap-[12px] h-[44px] rounded-[8px] p-[4px] box-border border-[var(--file-items-border-color)]",
+        "w-fit flex flex-row items-center gap-[12px] h-[36px] rounded-[8px] box-border border-[var(--file-items-border-color)]",
+        isImage ? "p-0 pe-[4px]" : "p-[4px]",
         withoutClose ? "cursor-pointer pe-[24px]" : "",
         withoutClose
           ? "bg-[var(--file-items-chat-background-color)]"
@@ -53,17 +76,21 @@ const FileItem = ({ file, withoutClose }: FileItemProps) => {
           : ""
       )}
       onClick={() => {
-        if (!withoutClose) return;
+        if (!withoutClose || !("path" in file)) return;
 
         window.AscDesktopEditor.openTemplate(file.path, name);
       }}
     >
-      {file.isImage ? (
-        <img className="h-[31px]" src={file.content} alt="" />
+      {"base64" in file ? (
+        <img
+          className="w-[36px] h-[36px] rounded-l-[8px]"
+          src={file.base64}
+          alt=""
+        />
       ) : (
-        <div className="flex flex-row items-center h-[36px] gap-[4px]">
-          <ReactSVG className="" src={icon} />
-          <p className="text-[var(--file-items-color)] whitespace-nowrap overflow-hidden text-ellipsis">
+        <div className="flex flex-row items-center h-[24px] gap-[4px]">
+          <Icon name={iconName} size={24} noColor />
+          <p className="text-[var(--file-items-color)] font-normal text-[14px] leading-[20px] whitespace-nowrap overflow-hidden text-ellipsis">
             {nameWithoutExtension}
             <span className="text-[var(--file-items-ext-color)]">
               .{extension}
@@ -74,7 +101,7 @@ const FileItem = ({ file, withoutClose }: FileItemProps) => {
 
       {!withoutClose ? (
         <IconButton
-          iconName={BtnCloseIconUrl}
+          iconName="btn-close.small"
           size={16}
           onClick={handleDelete}
         />

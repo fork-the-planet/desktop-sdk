@@ -1,56 +1,59 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-
 import useRouter from "@/store/useRouter";
-
-import { Navigation } from "./sub-components/Header";
+import useThemeStore from "@/store/useThemeStore";
 import { ChatList } from "./sub-components/ChatList";
+import { Navigation } from "./sub-components/Header";
+
+const getSystemTheme = (system: "dark" | "light") => {
+  if (system === "dark") {
+    return "theme-night";
+  }
+
+  return "theme-white";
+};
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const { currentPage } = useRouter();
+  const { themeId, setThemeId } = useThemeStore();
 
   const { i18n } = useTranslation();
 
-  const [theme, setTheme] = React.useState(() => {
-    if (window.RendererProcessVariable) {
-      return window.RendererProcessVariable.theme.id;
-    } else {
-      return "theme-light";
-    }
-  });
-
   React.useLayoutEffect(() => {
     if (window.RendererProcessVariable) {
-      i18n.changeLanguage("en");
+      i18n.changeLanguage(window.RendererProcessVariable.lang);
     }
 
     window.on_update_plugin_info = (info) => {
       if (info.lang) {
-        i18n.changeLanguage("en");
+        i18n.changeLanguage(info.lang);
       }
 
       if (info.theme) {
         if (info.theme === "theme-system") {
-          setTheme(`theme-${window.RendererProcessVariable.theme.system}`);
+          const resolvedTheme = getSystemTheme(
+            window.RendererProcessVariable.theme.system as "dark" | "light"
+          );
+          setThemeId(resolvedTheme);
         } else {
-          setTheme(info.theme);
+          setThemeId(info.theme);
         }
       }
     };
-  }, [i18n]);
+  }, [i18n, setThemeId]);
 
   const isSettings = currentPage === "settings";
 
   return (
-    <div className={`h-dvh ${theme}`}>
+    <div className={`h-[100vh] ${themeId}`}>
       <main
         id="app"
-        className="h-dvh bg-[var(--layout-background-color)] flex flex-col"
+        className="h-[100vh] bg-[var(--layout-background-color)] flex flex-col"
       >
         <Navigation />
         <div
           className="flex flex-row flex-1"
-          style={{ height: "calc(100dvh - 56px)" }}
+          style={{ height: "calc(100vh - 56px)" }}
         >
           {!isSettings ? <ChatList /> : null}
           <div className="w-full">{children}</div>

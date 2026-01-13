@@ -1,13 +1,8 @@
 import { useTranslation } from "react-i18next";
-
-import BtnSettingsUrl from "@/assets/btn-settings.svg?url";
-import BtnAddUrl from "@/assets/btn-zoomup.svg?url";
-
-import useRouter from "@/store/useRouter";
-import useThreadsStore from "@/store/useThreadsStore";
-
 import { IconButton } from "@/components/icon-button";
 import { TooltipIconButton } from "@/components/tooltip-icon-button";
+import useRouter from "@/store/useRouter";
+import useThreadsStore from "@/store/useThreadsStore";
 
 const Navigation = () => {
   const { t } = useTranslation();
@@ -23,7 +18,7 @@ const Navigation = () => {
         </h3>
         <TooltipIconButton tooltip={t("NewChat")}>
           <IconButton
-            iconName={BtnAddUrl}
+            iconName="btn-zoomup"
             size={24}
             isStroke
             onClick={() => {
@@ -35,7 +30,7 @@ const Navigation = () => {
       </div>
       <TooltipIconButton tooltip={t("Settings")}>
         <IconButton
-          iconName={BtnSettingsUrl}
+          iconName="btn-settings"
           size={24}
           isStroke
           isActive={currentPage === "settings"}

@@ -1,16 +1,10 @@
-import React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { ReactSVG } from "react-svg";
-
-import CloseIconUrl from "@/assets/btn-close.svg?url";
-import AttentionIconUrl from "@/assets/attention.svg?url";
-
-import { cn } from "@/lib/utils";
-
+import React from "react";
+import { Icon } from "@/components/icon";
 import { IconButton } from "@/components/icon-button";
-
-import { DialogPortal } from "./DialogPortal";
+import { cn } from "@/lib/utils";
 import { DialogOverlay } from "./DialogOverlay";
+import { DialogPortal } from "./DialogPortal";
 import { DialogTitle } from "./DialogTitle";
 
 const HiddenComponents = () => (
@@ -90,12 +84,14 @@ const DialogContent = ({
           )}
         >
           <div className="flex items-center gap-[4px]">
-            {withWarningIcon ? <ReactSVG src={AttentionIconUrl} /> : null}
+            {withWarningIcon ? (
+              <Icon name="attention" size={20} noColor />
+            ) : null}
             <DialogTitle withWarningIcon={withWarningIcon}>
               {header}
             </DialogTitle>
           </div>
-          <IconButton iconName={CloseIconUrl} size={24} onClick={onClose} />
+          <IconButton iconName="btn-close" size={24} onClick={onClose} />
         </div>
         <div
           className={cn(

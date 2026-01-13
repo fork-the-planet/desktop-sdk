@@ -1,7 +1,6 @@
 import type { TMCPItem } from "@/lib/types";
-
-import { DesktopEditorTool } from "./DesktopEditor";
 import { CustomServers } from "./CustomServers";
+import { DesktopEditorTool } from "./DesktopEditor";
 import { WebSearch, type WebSearchData } from "./WebSearch";
 
 const ALLOW_ALWAYS_TOOLS = "allowAlwaysTools";
@@ -84,6 +83,17 @@ class Servers {
     return await this.customServers.callToolFromMCP(type, name, args);
   };
 
+  getServerType = (name: string) => {
+    if (name.includes("desktop-editor_")) {
+      return "desktop-editor";
+    }
+
+    if (name.includes("web-search_")) {
+      return "web-search";
+    }
+    return this.customServers.getServerType(name);
+  };
+
   setCustomServers = (servers: {
     mcpServers: Record<string, Record<string, unknown>>;
   }) => {
@@ -107,7 +117,7 @@ class Servers {
   };
 
   getCustomServersStoped = () => {
-    return this.customServers.stopedCustomServers;
+    return this.customServers.stoppedCustomServers;
   };
 
   getCustomServersLogs = () => {

@@ -1,8 +1,7 @@
+import React from "react";
 import { useTranslation } from "react-i18next";
-
-import { Dialog, DialogContent } from "@/components/dialog";
 import { Button } from "@/components/button";
-
+import { Dialog, DialogContent } from "@/components/dialog";
 import useServersStore from "@/store/useServersStore";
 
 type DeleteServerDialogProps = {
@@ -15,10 +14,25 @@ const DeleteServerDialog = ({ name, onClose }: DeleteServerDialogProps) => {
 
   const { deleteCustomServer } = useServersStore();
 
-  const onSubmitAction = () => {
+  const onSubmitAction = React.useCallback(() => {
     deleteCustomServer(name);
     onClose();
-  };
+  }, [deleteCustomServer, name, onClose]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onSubmitAction();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onSubmitAction]);
 
   return (
     <Dialog open={true}>

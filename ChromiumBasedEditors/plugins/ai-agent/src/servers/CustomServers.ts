@@ -1,12 +1,12 @@
-import type { TProcess, TMCPItem } from "@/lib/types";
+import type { TMCPItem, TProcess } from "@/lib/types";
 
 const getParams = (config: Record<string, unknown>) => {
   let command = "";
   const env: Record<string, string> = {};
   let args = "";
 
-  Object.entries(config).map(([key, value]) => {
-    if (key == "env") {
+  Object.entries(config).forEach(([key, value]) => {
+    if (key === "env") {
       Object.entries(value as Record<string, string>).forEach(([k, v]) => {
         env[k] = v;
       });
@@ -16,12 +16,12 @@ const getParams = (config: Record<string, unknown>) => {
       command = value as string;
     }
 
-    if (key == "args") {
+    if (key === "args") {
       args = (value as string[]).join(" ");
     }
   });
 
-  const commandLine = command + " " + args;
+  const commandLine = `${command} ${args}`;
 
   return { commandLine, env };
 };
@@ -30,7 +30,7 @@ class CustomServers {
   customServers: Record<string, Record<string, unknown>>;
   startedCustomServers: Record<string, string>;
   initedCustomServers: Record<string, boolean>;
-  stopedCustomServers: string[];
+  stoppedCustomServers: string[];
   customServersProcesses: Record<string, TProcess>;
   customServersLogs: Record<string, string[]>;
   tools: Record<string, TMCPItem[]>;
@@ -42,7 +42,7 @@ class CustomServers {
     this.customServersProcesses = {};
     this.customServersLogs = {};
     this.tools = {};
-    this.stopedCustomServers = [];
+    this.stoppedCustomServers = [];
   }
 
   onProcess = (type: string, t: number, message: string) => {
@@ -52,10 +52,10 @@ class CustomServers {
       if (
         correctJson.jsonrpc === "2.0" &&
         correctJson.id &&
-        correctJson.id.includes("init-" + type)
+        correctJson.id.includes(`init-${type}`)
       ) {
         this.initedCustomServers[type] = true;
-        this.stopedCustomServers = this.stopedCustomServers.filter(
+        this.stoppedCustomServers = this.stoppedCustomServers.filter(
           (s) => s !== type
         );
       }
@@ -63,9 +63,10 @@ class CustomServers {
       if (
         correctJson.jsonrpc === "2.0" &&
         correctJson.id &&
-        correctJson.id.includes("tools-" + type)
+        correctJson.id.includes(`tools-${type}`)
       ) {
         this.tools[type] = correctJson.result.tools;
+        window.dispatchEvent(new CustomEvent("tools-changed"));
       }
     } catch {
       // ignore
@@ -88,7 +89,7 @@ class CustomServers {
         this.customServersLogs[type].push(
           `${new Date().toLocaleString()}: [stop] ${message}\n`
         );
-        this.stopedCustomServers.push(type);
+        this.stoppedCustomServers.push(type);
         break;
       }
       default:
@@ -100,6 +101,18 @@ class CustomServers {
     mcpServers: Record<string, Record<string, unknown>>;
   }) => {
     this.customServers = servers.mcpServers;
+  };
+
+  getServerType = (name: string) => {
+    let type: string = "";
+
+    Object.keys(this.customServers).forEach((serverType) => {
+      if (name.includes(`${serverType}_`)) {
+        type = serverType;
+      }
+    });
+
+    return type;
   };
 
   startCustomServers = () => {
@@ -166,6 +179,7 @@ class CustomServers {
       process.start();
 
       this.initCustomServer(type);
+      window.dispatchEvent(new CustomEvent("tools-changed"));
     });
   };
 
@@ -186,6 +200,7 @@ class CustomServers {
     if (this.tools[type]) {
       delete this.tools[type];
     }
+    window.dispatchEvent(new CustomEvent("tools-changed"));
   };
 
   initCustomServer = (type: string) => {
@@ -312,10 +327,7 @@ class CustomServers {
               const response = JSON.parse(message);
 
               // Check if this is our tool call response
-              if (
-                response.id &&
-                response.id.startsWith(`call-${serverType}-${toolName}`)
-              ) {
+              if (response.id?.startsWith(`call-${serverType}-${toolName}`)) {
                 // Restore original handler
                 process.onprocess = originalOnProcess;
                 clearTimeout(timeout);

@@ -2176,6 +2176,21 @@ if (main.DisableVersionHistory) main.DisableVersionHistory(); \
 							// bIsNeedRelogin = true;
 						}
 
+						if (savedInfo && !bIsServerPrivateKeyExist)
+						{
+							std::string sPublic = U_TO_UTF8(savedInfo->PublicKey);
+							std::string sPrivateEnc = U_TO_UTF8(savedInfo->PrivateKeyEnc);
+
+							// отсылаем ключи
+							NSStringUtils::string_replaceA(sPublic, "\n", "&#xA");
+							std::string sCode =
+								("setTimeout(function() { window.cloudCryptoCommand && window.cloudCryptoCommand(\"encryptionKeys\", { publicKey : \"" + sPublic + "\", privateKeyEnc : \"" +
+								 sPrivateEnc + "\" }); }, 10);");
+							CefRefPtr<CefFrame> _frame = CefV8Context::GetCurrentContext()->GetFrame();
+							_frame->ExecuteJavaScript(sCode, _frame->GetURL(), 0);
+
+						}
+
 						if (tmpInfo)
 							oAppTmp.removeInfo(L"" /*info.Email*/, info.Portal);
 
@@ -3039,7 +3054,7 @@ window._external_process_callback = {};\n\
 				CPluginsManager oPlugins;
 				oPlugins.m_strDirectory = m_sSystemPlugins;
 				oPlugins.m_strUserDirectory = m_sUserPlugins;
-				oPlugins.GetInstalledPlugins();
+				oPlugins.CheckInstalledPlugins();
 
 				int nCount = (int)oPlugins.m_arCryptoModes.size();
 				retval = CefV8Value::CreateArray(nCount);
@@ -4604,6 +4619,13 @@ window.AscDesktopEditor.CallInFrame(\"" +
 			}
 			else if (name == "_createProcess")
 			{
+				std::string sCurrentUrl = CefV8Context::GetCurrentContext()->GetFrame()->GetURL().ToString();
+				if (0 != sCurrentUrl.find("onlyoffice://"))
+				{
+					retval = CefV8Value::CreateInt(-1);
+					return true;
+				}
+
 				if (!m_external_processes)
 					m_external_processes = new NSProcesses::CProcessManager(this);
 
@@ -4784,6 +4806,30 @@ window.AscDesktopEditor.CallInFrame(\"" +
 				message->GetArgumentList()->SetInt(4, nConvertCounter);
 
 				SEND_MESSAGE_TO_BROWSER_PROCESS(message);
+				return true;
+			}
+			else if (name == "getOfficeFileType")
+			{
+				if (arguments.size() < 1)
+				{
+					retval = CefV8Value::CreateInt(-1);
+					return true;
+				}
+
+				int nFileType = 0;
+				std::wstring sFileUrl = arguments[0]->GetStringValue().ToWString();
+
+				if (g_pLocalResolver->Check(sFileUrl))
+				{
+					COfficeFileFormatChecker oChecker;
+					bool bIsOfficeFile = oChecker.isOfficeFile(sFileUrl);
+					if (bIsOfficeFile)
+					{
+						nFileType = oChecker.nFileType;
+					}
+				}
+
+				retval = CefV8Value::CreateInt(nFileType);
 				return true;
 			}
 
@@ -5279,6 +5325,11 @@ window.AscDesktopEditor.CallInFrame(\"" +
 			return files;
 		}
 
+		virtual void ExecuteJS(const std::string& code)
+		{
+			CefV8Context::GetCurrentContext()->GetFrame()->ExecuteJavaScript(code, "", 0);
+		}
+
 		// Provide the reference counting implementation for this class.
 		IMPLEMENT_REFCOUNTING(CAscEditorNativeV8Handler);
 	};
@@ -5402,7 +5453,7 @@ if (targetElem) { targetElem.dispatchEvent(event); }})();";
 
 			CefRefPtr<CefV8Handler> handler = pWrapper;
 
-#define EXTEND_METHODS_COUNT 196
+#define EXTEND_METHODS_COUNT 197
 			const char* methods[EXTEND_METHODS_COUNT] = {
 				"Copy",
 				"Paste",
@@ -5675,6 +5726,8 @@ if (targetElem) { targetElem.dispatchEvent(event); }})();";
 				"getGenerationInfo",
 
 				"_saveAndOpen",
+
+				"getOfficeFileType",
 
 				NULL};
 

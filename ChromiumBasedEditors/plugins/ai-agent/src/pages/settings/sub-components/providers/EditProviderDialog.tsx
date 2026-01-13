@@ -1,20 +1,19 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-
-import type { ProviderType, TProvider } from "@/lib/types";
-
-import { Dialog, DialogContent } from "@/components/dialog";
 import { Button } from "@/components/button";
-import { FieldContainer } from "@/components/field-container";
 import { ComboBox } from "@/components/combo-box";
+import { Dialog, DialogContent } from "@/components/dialog";
+import { FieldContainer } from "@/components/field-container";
 import { Input } from "@/components/input";
-
+import { Loader } from "@/components/loader";
+import type { ProviderType, TProvider } from "@/lib/types";
+import { sanitizeProviderName } from "@/lib/utils";
+import { provider as providerInstance } from "@/providers";
 import useProviders from "@/store/useProviders";
-
 import {
-  dialogMainContainerStyles,
-  dialogContentContainerStyles,
   dialogButtonContainerStyles,
+  dialogContentContainerStyles,
+  dialogMainContainerStyles,
 } from "./Providers.styles";
 
 type EditProviderDialogProps = {
@@ -25,7 +24,8 @@ type EditProviderDialogProps = {
 const EditProviderDialog = ({ name, onClose }: EditProviderDialogProps) => {
   const { t } = useTranslation();
 
-  const { providers, editProvider } = useProviders();
+  const { providers, editProvider, currentProvider, setCurrentProvider } =
+    useProviders();
 
   const [provider, setProvider] = React.useState<TProvider>(() => {
     const provider = providers.find((p) => p.name === name);
@@ -44,15 +44,22 @@ const EditProviderDialog = ({ name, onClose }: EditProviderDialogProps) => {
   });
 
   const [value, setValue] = React.useState({
-    name: provider!.name,
-    url: provider!.baseUrl,
-    key: provider!.key,
+    name: provider?.name,
+    url: provider?.baseUrl,
+    key: provider?.key,
   });
   const [error, setError] = React.useState({
     key: "",
     url: "",
     name: "",
   });
+  const [isRequestRunning, setIsRequestRunning] = React.useState(false);
+  const isRequestRunningRef = React.useRef(isRequestRunning);
+
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const [buttonWidth, setButtonWidth] = React.useState<number | undefined>(
+    undefined
+  );
 
   React.useEffect(() => {
     const provider = providers.find((p) => p.name === name);
@@ -81,39 +88,24 @@ const EditProviderDialog = ({ name, onClose }: EditProviderDialogProps) => {
   const dialogRef = React.useRef<HTMLDivElement>(null);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value: inputValue } = e.target;
+    const nextValue =
+      name === "name" ? sanitizeProviderName(inputValue) : inputValue;
+
     setValue((prevValue) => ({
       ...prevValue,
-      [e.target.name]: e.target.value,
+      [name]: nextValue,
     }));
     setError((prev) => ({
       ...prev,
-      [e.target.name]: "",
+      [name]: "",
     }));
   };
 
-  const onSubmitAction = async () => {
-    const result = await editProvider(
-      {
-        type: provider!.type,
-        name: value.name,
-        key: value.key,
-        baseUrl: value.url,
-      },
-      provider.name
-    );
-
-    if (typeof result === "boolean" && result) {
-      onClose();
-    } else if (result) {
-      setError((prev) => ({
-        ...prev,
-        [result.field]: result.message,
-      }));
-    }
-  };
+  const trimmedName = value.name.trim();
 
   const isSameUrlAndName =
-    value.name === provider.name && value.url === provider.baseUrl;
+    trimmedName === provider.name && value.url === provider.baseUrl;
 
   const isSameKey = value.key === provider.key;
 
@@ -121,7 +113,75 @@ const EditProviderDialog = ({ name, onClose }: EditProviderDialogProps) => {
     (isSameKey && isSameUrlAndName) ||
     !!error.key ||
     !!error.url ||
-    !!error.name;
+    !!error.name ||
+    !trimmedName;
+
+  const onSubmitAction = React.useCallback(async () => {
+    if (isRequestRunningRef.current || isDisabled) return;
+    isRequestRunningRef.current = true;
+    setIsRequestRunning(true);
+
+    const updatedProviderInfo = {
+      type: provider?.type,
+      name: trimmedName,
+      key: value.key,
+      baseUrl: value.url,
+    };
+
+    const result = await editProvider(updatedProviderInfo, provider.name);
+
+    if (typeof result === "boolean" && result) {
+      // Check if the edited provider is the current provider
+      if (currentProvider?.name === provider.name) {
+        // Update current provider with new info
+        const updatedProvider = {
+          ...provider,
+          ...updatedProviderInfo,
+        };
+        setCurrentProvider(updatedProvider);
+        providerInstance.setCurrentProvider(updatedProvider);
+      }
+      onClose();
+    } else if (result) {
+      setError((prev) => ({
+        ...prev,
+        [result.field]: result.message,
+      }));
+    }
+    isRequestRunningRef.current = false;
+    setIsRequestRunning(false);
+  }, [
+    isDisabled,
+    editProvider,
+    provider,
+    value,
+    onClose,
+    currentProvider,
+    setCurrentProvider,
+    trimmedName,
+  ]);
+
+  React.useEffect(() => {
+    if (buttonRef.current && buttonWidth === undefined) {
+      const width = buttonRef.current.offsetWidth + 1;
+      setButtonWidth(width);
+    }
+  }, [buttonWidth]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onSubmitAction();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onSubmitAction]);
 
   return (
     <Dialog open={true}>
@@ -172,8 +232,17 @@ const EditProviderDialog = ({ name, onClose }: EditProviderDialogProps) => {
             <Button variant="default" onClick={onClose}>
               {t("Cancel")}
             </Button>
-            <Button onClick={onSubmitAction} disabled={isDisabled}>
-              {t("Save")}
+            <Button
+              ref={buttonRef}
+              onClick={onSubmitAction}
+              disabled={isDisabled || isRequestRunning}
+              style={buttonWidth ? { width: `${buttonWidth}px` } : undefined}
+            >
+              {isRequestRunning ? (
+                <Loader className="border-[var(--text-contrast-background)] border-r-transparent" />
+              ) : (
+                t("Save")
+              )}
             </Button>
           </div>
         </div>

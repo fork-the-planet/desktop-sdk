@@ -1,12 +1,9 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-
-import { Dialog, DialogContent } from "@/components/dialog";
 import { Button } from "@/components/button";
-
-import useProviders from "@/store/useProviders";
-
+import { Dialog, DialogContent } from "@/components/dialog";
 import type { ProviderType, TProvider } from "@/lib/types";
+import useProviders from "@/store/useProviders";
 
 type DeleteProviderDialogProps = {
   name: string;
@@ -44,10 +41,25 @@ const DeleteProviderDialog = ({ name, onClose }: DeleteProviderDialogProps) => {
     setProvider(provider);
   }, [providers, name]);
 
-  const onSubmitAction = async () => {
+  const onSubmitAction = React.useCallback(async () => {
     await deleteProvider(provider);
     onClose();
-  };
+  }, [deleteProvider, provider, onClose]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onSubmitAction();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onSubmitAction]);
 
   return (
     <Dialog open={true}>

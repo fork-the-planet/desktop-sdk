@@ -1,10 +1,8 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-
 import { Button } from "@/components/button";
-
-import ConfigDialog from "./ConfigDialog";
 import AvailableTools from "./AvailableTools";
+import ConfigDialog from "./ConfigDialog";
 
 const Servers = () => {
   const { t } = useTranslation();
@@ -12,7 +10,7 @@ const Servers = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-[16px] mt-[16px]">
+      <div className="flex flex-col gap-[16px] mt-[16px] pb-[32px]">
         <p className="font-normal text-[14px] leading-[20px] text-[var(--servers-description-color)]">
           {t("CustomServersDescription")}
         </p>

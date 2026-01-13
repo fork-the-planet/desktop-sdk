@@ -1,18 +1,11 @@
-import { useRef, useState } from "react";
 import { Item } from "@radix-ui/react-dropdown-menu";
-import { ReactSVG } from "react-svg";
-
+import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-
-import ArrowRightIconUrl from "@/assets/arrow.right.svg?url";
-import CheckedIconUrl from "@/assets/checked.svg?url";
-
 import { DropdownMenu } from "../dropdown";
 import { IconButton } from "../icon-button";
-import { Tooltip, TooltipTrigger, TooltipContent } from "../tooltip";
-
-import type { DropDownItemProps } from "./DropDownItem.types";
 import { ToggleButton } from "../toggle-button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
+import type { DropDownItemProps } from "./DropDownItem.types";
 
 const DropDownItem = ({
   text,
@@ -29,8 +22,13 @@ const DropDownItem = ({
   checked,
   tooltipText,
   withSpace,
+  withAbout,
+  aboutContent,
 }: DropDownItemProps) => {
   const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
+  const [submenuSide, setSubmenuSide] = useState<"left" | "right">("right");
+  const [submenuOffset, setSubmenuOffset] = useState(12);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
 
   const itemRef = useRef<HTMLDivElement | null>(null);
   const submenuRef = useRef<HTMLDivElement | null>(null);
@@ -52,6 +50,13 @@ const DropDownItem = ({
   const handleToggleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+
+    if (
+      e.target instanceof HTMLElement &&
+      (e.target.closest("[data-slot='tooltip-trigger']") ||
+        e.target.closest("[data-slot='tooltip-content']"))
+    )
+      return;
 
     if (toggleDisabled) return;
 
@@ -89,6 +94,26 @@ const DropDownItem = ({
   const handleMouseEnter = () => {
     if (isSubMenuOpen || !subMenu) return;
 
+    // Calculate which side has more space
+    if (itemRef.current) {
+      const itemRect = itemRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+
+      const spaceOnRight = viewportWidth - itemRect.right;
+
+      // Assume submenu width is around 300px (max-w-[300px]) + 4px offset
+      const estimatedSubmenuWidth = 154;
+
+      // Open on left if there's not enough space on right but enough on left
+      let side: "left" | "right" = "right";
+      if (spaceOnRight < estimatedSubmenuWidth) {
+        side = "left";
+      }
+
+      setSubmenuSide(side);
+      setSubmenuOffset(side === "left" ? itemRect.width - 24 : 12);
+    }
+
     setIsSubMenuOpen(true);
     window.addEventListener("mousemove", handleMouseMove);
   };
@@ -97,7 +122,7 @@ const DropDownItem = ({
     <Item
       className={cn(
         "dropdown-menu-item",
-        "flex items-center justify-between gap-[16px] min-w-0 w-full max-w-full min-h-[32px] h-[32px] px-[12px] select-none cursor-pointer",
+        "flex items-center justify-between gap-[32px] min-w-0 w-full max-w-full min-h-[32px] h-[32px] px-[12px] select-none cursor-pointer",
         "outline-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0 border-0",
         "hover:bg-[var(--drop-down-menu-item-hover-color)] hover:text-[var(--drop-down-menu-item-hover-color)]",
         // "data-[highlighted]:bg-[var(--drop-down-menu-item-active-color)] data-[highlighted]:text-[var(--drop-down-menu-item-active-color)]",
@@ -111,41 +136,60 @@ const DropDownItem = ({
       onMouseEnter={handleMouseEnter}
       ref={itemRef}
     >
-      <div className="flex items-center gap-[8px] min-w-0 flex-1">
+      <div className="flex items-center gap-[4px] min-w-0 flex-1">
         {icon && typeof icon === "string" ? (
           <IconButton iconName={icon} size={iconSize} disableHover />
         ) : (
-          icon ?? null
+          (icon ?? null)
         )}
-        <span className={cn(
-          "truncate font-normal text-[14px] leading-[20px] text-[var(--drop-down-menu-item-color)]",
-          withSpace ? "ms-[28px]" : ""
-        )}>
+        <span
+          className={cn(
+            "truncate font-normal text-[14px] leading-[20px] text-[var(--drop-down-menu-item-color)]",
+            withSpace ? "ms-[28px]" : ""
+          )}
+        >
           {text}
         </span>
+        {withAbout ? (
+          <Tooltip open={isAboutOpen}>
+            <TooltipTrigger asChild>
+              <IconButton
+                iconName="btn-menu-about"
+                size={24}
+                disableHover
+                onClick={() => setIsAboutOpen((val) => !val)}
+              />
+            </TooltipTrigger>
+            <TooltipContent side={undefined} sideOffset={4} isAbout>
+              {aboutContent}
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
       </div>
 
       {subMenu ? (
         <DropdownMenu
           trigger={
             <IconButton
-              iconName={ArrowRightIconUrl}
+              iconName="arrow.right"
               size={12}
               insideElement
               isStroke
             />
           }
           items={subMenu}
-          side="right"
+          side={submenuSide}
           align="start"
-          sideOffset={0}
+          sideOffset={submenuOffset}
           open={isSubMenuOpen}
-          contentClassName="ms-[12px] mt-[-15px] max-w-[300px]"
+          contentClassName="mt-[-15px] max-w-[300px]"
           containerRef={itemRef.current}
           dropdownRef={submenuRef}
         />
       ) : null}
-      {checked ? <ReactSVG src={CheckedIconUrl} /> : null}
+      {checked ? (
+        <IconButton iconName="checked" size={16} disableHover isStroke />
+      ) : null}
       {withToggle && onToggleChange ? (
         <div onClick={(e) => e.stopPropagation()}>
           <ToggleButton
@@ -162,7 +206,9 @@ const DropDownItem = ({
     return (
       <Tooltip>
         <TooltipTrigger asChild>{itemContent}</TooltipTrigger>
-        <TooltipContent>{tooltipText}</TooltipContent>
+        <TooltipContent side={undefined} sideOffset={4}>
+          {tooltipText}
+        </TooltipContent>
       </Tooltip>
     );
   }
