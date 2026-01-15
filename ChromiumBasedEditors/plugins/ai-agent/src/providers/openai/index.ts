@@ -17,7 +17,13 @@ import {
   createErrorResponse,
   generateFallbackToolCallId,
 } from "./constants";
-import { handleTextMessage, handleToolCall } from "./handlers";
+import {
+  type DeltaWithReasoning,
+  finalizeReasoningPart,
+  handleReasoningMessage,
+  handleTextMessage,
+  handleToolCall,
+} from "./handlers";
 import { openaiInfo } from "./info";
 import {
   convertMessagesToModelFormat,
@@ -266,14 +272,22 @@ class OpenAIProvider extends AbstractBaseProvider<
         previousMessage
       );
       let isStreamComplete = false;
+      let hasUnfinalizedReasoning = false;
 
       for await (const streamEvent of stream) {
         // Process each chunk in the stream event
         for (const chunk of streamEvent.choices) {
           if (isStreamComplete) break;
 
+          const delta = chunk.delta as DeltaWithReasoning;
+
           // Handle stream completion
           if (chunk.finish_reason) {
+            // Finalize reasoning if stream ends without text content
+            if (hasUnfinalizedReasoning) {
+              responseMessage = finalizeReasoningPart(responseMessage, true);
+            }
+
             responseMessage = afterToolCall
               ? this.filterAfterToolCallContent(
                   responseMessage,
@@ -286,8 +300,22 @@ class OpenAIProvider extends AbstractBaseProvider<
             break;
           }
 
+          // Handle reasoning content (e.g., DeepSeek thinking)
+          if (delta.reasoning_content) {
+            hasUnfinalizedReasoning = true;
+            responseMessage = handleReasoningMessage(
+              responseMessage,
+              delta.reasoning_content
+            );
+          }
+
           // Handle text content
-          if (chunk.delta.content) {
+          if (delta.content) {
+            // Finalize reasoning when regular content starts
+            if (hasUnfinalizedReasoning) {
+              responseMessage = finalizeReasoningPart(responseMessage);
+              hasUnfinalizedReasoning = false;
+            }
             responseMessage = handleTextMessage(
               responseMessage,
               chunk,
@@ -296,16 +324,22 @@ class OpenAIProvider extends AbstractBaseProvider<
           }
 
           // Handle tool calls
-          if (
-            chunk.delta.tool_calls &&
-            typeof responseMessage.content !== "string"
-          ) {
+          if (delta.tool_calls && typeof responseMessage.content !== "string") {
+            // Finalize reasoning when tool calls start
+            if (hasUnfinalizedReasoning) {
+              responseMessage = finalizeReasoningPart(responseMessage);
+              hasUnfinalizedReasoning = false;
+            }
             responseMessage = handleToolCall(responseMessage, chunk);
           }
         }
 
         // Handle user-initiated stop
         if (this.stopFlag) {
+          // Finalize reasoning if user stops during reasoning
+          if (hasUnfinalizedReasoning) {
+            responseMessage = finalizeReasoningPart(responseMessage, true);
+          }
           this.pushSingleMessage(responseMessage);
           stream.controller.abort();
           this.stopFlag = false;

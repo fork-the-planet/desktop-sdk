@@ -20,7 +20,7 @@ export type ProviderType =
   | "together"
   | "openrouter"
   | "genai"
-  // | "deepseek"
+  | "deepseek"
   | "xai"
   | "lm-studio";
 

@@ -13,16 +13,13 @@
     "zh": "AI 智能体"
   },
   "guid": "asc.{9DC93CDB-B576-4F0C-B55E-FCC9C48DD777}",
-
   "variations": [
     {
       "description": "ai-agent",
       "url": "index.html",
-
       "initDataType": "desktop-external",
       "initData": "none"
     }
   ],
-
   "onlyofficeScheme": true
 }
