@@ -80,30 +80,43 @@ const convertUserContent = (
 /** Result of processing assistant message parts */
 interface ProcessedAssistantParts {
   content: ChatCompletionAssistantMessageParam["content"];
+  reasoningContent: string | null;
   toolCalls: ChatCompletionMessageFunctionToolCall[];
   toolResults: ChatCompletionToolMessageParam[];
 }
 
 /**
  * Processes assistant message parts into OpenAI format.
- * Separates text content, tool calls, and tool results.
+ * Separates text content, reasoning content, tool calls, and tool results.
  */
 const processAssistantParts = (
   message: ThreadMessageLike
 ): ProcessedAssistantParts => {
   // Handle simple string content
   if (typeof message.content === "string") {
-    return { content: message.content, toolCalls: [], toolResults: [] };
+    return {
+      content: message.content,
+      reasoningContent: null,
+      toolCalls: [],
+      toolResults: [],
+    };
   }
 
   const content: ChatCompletionAssistantMessageParam["content"] = [];
   const toolCalls: ChatCompletionMessageFunctionToolCall[] = [];
   const toolResults: ChatCompletionToolMessageParam[] = [];
+  let reasoningContent: string | null = null;
 
   for (const part of message.content) {
     // Handle text parts
     if (part.type === "text") {
       content.push({ type: "text", text: part.text });
+      continue;
+    }
+
+    // Handle reasoning parts (for DeepSeek thinking mode)
+    if (part.type === "reasoning") {
+      reasoningContent = part.text;
       continue;
     }
 
@@ -130,12 +143,17 @@ const processAssistantParts = (
     });
   }
 
-  return { content, toolCalls, toolResults };
+  return { content, reasoningContent, toolCalls, toolResults };
 };
 
 // ============================================
 // Message Array Conversion
 // ============================================
+
+/** Assistant message with optional reasoning content for DeepSeek */
+type AssistantMessageWithReasoning = ChatCompletionAssistantMessageParam & {
+  reasoning_content?: string;
+};
 
 /**
  * Converts ThreadMessageLike messages to OpenAI's message format.
@@ -158,12 +176,18 @@ export const convertMessagesToModelFormat = (
     }
 
     // Handle assistant messages
-    const { content, toolCalls, toolResults } = processAssistantParts(message);
+    const { content, reasoningContent, toolCalls, toolResults } =
+      processAssistantParts(message);
 
-    const assistantMessage: ChatCompletionAssistantMessageParam = {
+    const assistantMessage: AssistantMessageWithReasoning = {
       role: "assistant",
       content,
     };
+
+    // Add reasoning_content for DeepSeek thinking mode
+    if (reasoningContent) {
+      assistantMessage.reasoning_content = reasoningContent;
+    }
 
     if (toolCalls.length > 0) {
       assistantMessage.tool_calls = toolCalls;

@@ -1,6 +1,5 @@
 import type { Model } from "@/lib/types";
-import type { TData, TErrorData } from "../base";
-import { ProviderErrors } from "../errors";
+import type { TData } from "../base";
 import { OpenAIProvider } from "../openai";
 import { deepseekInfo } from "./info";
 
@@ -12,80 +11,34 @@ class DeepSeekProvider extends OpenAIProvider {
 
   getBaseUrl = (): string => deepseekInfo.baseUrl;
 
-  checkProvider = async (data: TData): Promise<boolean | TErrorData> => {
-    const promiseRes: boolean | TErrorData = await new Promise(
-      (resolve, _reject) => {
-        window.AscSimpleRequest.createRequest({
-          url: `${data.url || deepseekInfo.baseUrl}/models`,
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": data.apiKey || "",
-          },
-          body: "",
-          complete: (e) => {
-            if (e.responseStatus === 200) {
-              resolve(true);
-            }
-            if (e.responseStatus === 401) {
-              resolve(ProviderErrors.invalidKey());
-            }
-
-            if (!data.apiKey) {
-              resolve(ProviderErrors.emptyKey());
-            }
-
-            resolve(ProviderErrors.invalidUrl());
-          },
-          error: () => {
-            resolve(ProviderErrors.invalidUrl());
-          },
-        });
-      }
+  getProviderModels = async (data: TData): Promise<Model[]> => {
+    const client = this.createClient(
+      data.apiKey,
+      data.url || deepseekInfo.baseUrl
     );
 
-    return promiseRes;
-  };
+    try {
+      const response = (await client.models.list()).data;
 
-  getProviderModels = async (data: TData): Promise<Model[]> => {
-    const promiseRes: Model[] = await new Promise((resolve, reject) => {
-      window.AscSimpleRequest.createRequest({
-        url: `${data.url || deepseekInfo.baseUrl}/models`,
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": data.apiKey || "",
-        },
-        body: "",
-        complete: (e) => {
-          const response = (JSON.parse(e.responseText) as { data: Model[] })
-            .data;
-
-          // Empty filter = show all models
-          const models =
-            deepseekInfo.modelFilters.length > 0
-              ? response.filter((model) =>
-                  deepseekInfo.modelFilters.includes(model.id)
-                )
-              : response;
-
-          resolve(
-            models
+      const models: Model[] =
+        deepseekInfo.modelFilters.length > 0
+          ? response
+              .filter((model) => deepseekInfo.modelFilters.includes(model.id))
               .map((model) => ({
                 id: model.id,
                 name: deepseekInfo.modelNames[model.id] || model.id,
                 provider: "deepseek" as const,
               }))
-              .reverse()
-          );
-        },
-        error: (e) => {
-          reject(e);
-        },
-      });
-    });
+          : response.map((model) => ({
+              id: model.id,
+              name: model.id,
+              provider: "deepseek" as const,
+            }));
 
-    return promiseRes;
+      return models.reverse();
+    } catch {
+      return [];
+    }
   };
 }
 
