@@ -890,6 +890,177 @@ test.describe('MCP Servers', () => {
     });
   });
 
+  test.describe('HTTP MCP Servers', () => {
+    // Note: In e2e tests, the onlyoffice-proxy:// scheme is not supported,
+    // so HTTP MCP servers won't actually connect. These tests verify config
+    // validation and persistence only (not server interactions).
+
+    test('should accept HTTP MCP server config with url property', async ({ page, settingsPage }) => {
+      await setupMCPServersTab(page, settingsPage);
+      await settingsPage.openMCPConfigDialog();
+
+      // Add HTTP MCP server config
+      const config = {
+        mcpServers: {
+          'http-server': {
+            url: 'https://api.example.com/mcp',
+            headers: {
+              Authorization: 'Bearer test-token',
+            },
+          },
+        },
+      };
+      await settingsPage.clearMCPConfigEditor();
+      await page.keyboard.type(JSON.stringify(config));
+
+      // Save button should be enabled for valid HTTP config
+      await expect(settingsPage.mcpConfigDialog.saveButton).toBeEnabled();
+    });
+
+    test('should validate HTTP server config with headers', async ({ page, settingsPage }) => {
+      await setupMCPServersTab(page, settingsPage);
+      await settingsPage.openMCPConfigDialog();
+
+      // Test complex HTTP config with multiple headers
+      const config = {
+        mcpServers: {
+          'github-copilot': {
+            url: 'https://api.github.com/copilot/mcp',
+            headers: {
+              Authorization: 'Bearer ghp_xxxxx',
+              'X-GitHub-Api-Version': '2022-11-28',
+              Accept: 'application/json',
+            },
+          },
+        },
+      };
+      await settingsPage.clearMCPConfigEditor();
+      await page.keyboard.type(JSON.stringify(config));
+
+      // Should be valid
+      await expect(settingsPage.mcpConfigDialog.saveButton).toBeEnabled();
+    });
+
+    test('should accept mixed HTTP and stdio servers in config', async ({ page, settingsPage }) => {
+      await setupMCPServersTab(page, settingsPage);
+      await settingsPage.openMCPConfigDialog();
+
+      const config = {
+        mcpServers: {
+          'stdio-server': {
+            command: 'echo',
+            args: ['hello'],
+          },
+          'http-server': {
+            url: 'https://api.example.com/mcp',
+          },
+        },
+      };
+      await settingsPage.clearMCPConfigEditor();
+      await page.keyboard.type(JSON.stringify(config));
+
+      // Should be valid - both stdio and HTTP configs are accepted
+      await expect(settingsPage.mcpConfigDialog.saveButton).toBeEnabled();
+    });
+
+    test('should persist HTTP server config in localStorage', async ({ page, settingsPage }) => {
+      await setupMCPServersTab(page, settingsPage);
+      await settingsPage.openMCPConfigDialog();
+
+      const config = {
+        mcpServers: {
+          'persist-http-server': {
+            url: 'https://persist.example.com/mcp',
+            headers: { 'X-Custom': 'header-value' },
+          },
+        },
+      };
+      await settingsPage.clearMCPConfigEditor();
+      await page.keyboard.type(JSON.stringify(config));
+
+      await settingsPage.mcpConfigDialog.saveButton.click();
+      await settingsPage.dialog.waitFor({ state: 'hidden', timeout: 10000 });
+
+      // Check localStorage directly
+      const storedData = await page.evaluate(() => {
+        return localStorage.getItem('mcpServers');
+      });
+
+      expect(storedData).not.toBeNull();
+      const parsedData = JSON.parse(storedData!);
+      expect(parsedData.mcpServers['persist-http-server']).toBeDefined();
+      expect(parsedData.mcpServers['persist-http-server'].url).toBe('https://persist.example.com/mcp');
+      expect(parsedData.mcpServers['persist-http-server'].headers['X-Custom']).toBe('header-value');
+    });
+
+    test('should persist HTTP server config after page reload', async ({ page, settingsPage }) => {
+      await setupMCPServersTab(page, settingsPage);
+      await settingsPage.openMCPConfigDialog();
+
+      const config = {
+        mcpServers: {
+          'reload-http-server': {
+            url: 'https://reload.example.com/mcp',
+          },
+        },
+      };
+      await settingsPage.clearMCPConfigEditor();
+      await page.keyboard.type(JSON.stringify(config));
+
+      await settingsPage.mcpConfigDialog.saveButton.click();
+      await settingsPage.dialog.waitFor({ state: 'hidden', timeout: 10000 });
+
+      // Reload page
+      await page.reload();
+      await page.getByRole('button', { name: /settings/i }).first().click();
+      await settingsPage.goToMCPServersTab();
+
+      // Open config dialog and verify HTTP config is persisted
+      await settingsPage.openMCPConfigDialog();
+      await expect(settingsPage.mcpConfigDialog.jsonEditor).toContainText('reload-http-server');
+      await expect(settingsPage.mcpConfigDialog.jsonEditor).toContainText('https://reload.example.com/mcp');
+    });
+
+    test('should store mixed servers config correctly', async ({ page, settingsPage }) => {
+      await setupMCPServersTab(page, settingsPage);
+      await settingsPage.openMCPConfigDialog();
+
+      const config = {
+        mcpServers: {
+          'my-stdio': {
+            command: 'node',
+            args: ['server.js'],
+            env: { DEBUG: 'true' },
+          },
+          'my-http': {
+            url: 'https://api.example.com/mcp',
+            headers: { Authorization: 'Bearer token' },
+          },
+        },
+      };
+      await settingsPage.clearMCPConfigEditor();
+      await page.keyboard.type(JSON.stringify(config));
+
+      await settingsPage.mcpConfigDialog.saveButton.click();
+      await settingsPage.dialog.waitFor({ state: 'hidden', timeout: 10000 });
+
+      // Check localStorage contains both
+      const storedData = await page.evaluate(() => {
+        return localStorage.getItem('mcpServers');
+      });
+
+      const parsedData = JSON.parse(storedData!);
+
+      // Verify stdio server
+      expect(parsedData.mcpServers['my-stdio'].command).toBe('node');
+      expect(parsedData.mcpServers['my-stdio'].args).toEqual(['server.js']);
+
+      // Verify HTTP server
+      expect(parsedData.mcpServers['my-http'].url).toBe('https://api.example.com/mcp');
+      expect(parsedData.mcpServers['my-http'].headers.Authorization).toBe('Bearer token');
+    });
+  });
+
   test.describe('Tool Capacity Management', () => {
     test('should auto-disable excess tools when server has more than available capacity', async ({ page, settingsPage }) => {
       await setupMCPServersTab(page, settingsPage);
