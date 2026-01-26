@@ -2634,6 +2634,32 @@ window._external_process_callback = {};\n\
 					}
 				}
 
+				// ENGINE can be updated!!!
+				if (true)
+				{
+					std::wstring baseUrl = L"https://onlyoffice.github.io/sdkjs-plugins/v1/";
+					std::vector<std::wstring> arFiles = {L"plugins.js", L"plugins-ui.js", L"plugins.css"};
+					std::wstring userFolder = m_sUserPlugins + L"/v1/";
+
+					for (std::vector<std::wstring>::const_iterator i = arFiles.cbegin(); i != arFiles.cend(); i++)
+					{
+						std::wstring sTmpFile = NSFile::CFileBinary::CreateTempFileWithUniqueName(NSFile::CFileBinary::GetTempPath(), L"IMG");
+						if (NSFile::CFileBinary::Exists(sTmpFile))
+							NSFile::CFileBinary::Remove(sTmpFile);
+
+						CFileDownloaderWrapper oDownloader(baseUrl + *i, sTmpFile);
+						oDownloader.DownloadSync();
+
+						if (NSFile::CFileBinary::Exists(sTmpFile))
+						{
+							std::wstring outFile = userFolder + *i;
+							if (NSFile::CFileBinary::Exists(outFile))
+								NSFile::CFileBinary::Remove(outFile);
+							NSFile::CFileBinary::Copy(sTmpFile, outFile);
+						}
+					}
+				}
+
 				// send to editor
 				CefRefPtr<CefBrowser> browser = CefV8Context::GetCurrentContext()->GetBrowser();
 				CefRefPtr<CefFrame> _frame = browser->GetFrame("frameEditor");
