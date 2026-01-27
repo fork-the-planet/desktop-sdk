@@ -42,6 +42,7 @@
   "Download": "Descargar",
   "Search": "Búsqueda...",
   "AddLocalFile": "Añadir archivo local...",
+  "AddLocalImage": "Añadir imagen local...",
   "RecentFiles": "Archivos recientes",
   "Attachments": "Archivos adjuntos",
   "APIKey": "Clave de la API",
@@ -79,5 +80,9 @@
   "EnableWebSearch": "Habilite la búsqueda web en la configuración",
   "WantDeleteServer": "Este servidor se eliminará de su lista. ¿Continuar?",
   "NoModelsAvailable": "Proveedor no disponible",
-  "CheckInfo": "El Chat de IA puede cometer errores. Compruebe la información importante."
+  "CheckInfo": "El Chat de IA puede cometer errores. Compruebe la información importante.",
+  "ConfigurationError": "La configuración debe colocarse dentro de la propiedad «mcpServers»",
+  "Thinking": "Razonamiento",
+  "ExtendedThinking": "Pensamiento extendido",
+  "ExtendedThinkingDescription": "Este modelo utiliza un razonamiento avanzado, lo que puede aumentar los costes."
 }

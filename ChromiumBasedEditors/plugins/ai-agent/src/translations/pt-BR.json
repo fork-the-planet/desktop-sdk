@@ -42,6 +42,7 @@
   "Download": "Baixar",
   "Search": "Pesquisar...",
   "AddLocalFile": "Adicionar arquivo local...",
+  "AddLocalImage": "Adicionar imagem local...",
   "RecentFiles": "Arquivos recentes",
   "Anexos": "Anexos",
   "APIKey": "Chave de API",
@@ -80,4 +81,8 @@
   "WantDeleteServer": "Este servidor será removido da sua lista. Deseja continuar ?",
   "NoModelsAvailable": "Fornecedor não disponível",
   "CheckInfo": "IA Bater papo Podem ocorrer erros. Verifique informações importantes."
+  "ConfigurationError": "A configuração deve ser colocada dentro da propriedade 'mcpServers'",
+  "Thinking": "Raciocínio",
+  "ExtendedThinking": "Raciocínio Avançado",
+  "ExtendedThinkingDescription": "Este modelo usa raciocínio avançado, o que pode aumentar os custos."
 }
