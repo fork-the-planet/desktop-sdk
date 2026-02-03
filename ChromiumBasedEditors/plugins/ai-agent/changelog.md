@@ -13,6 +13,7 @@
 - Add mistral provider
 - Add support SSE and streamable-http for custom servers
 - Add support Extended thinking
+- Add RTL
 
 
 ### Bugs
