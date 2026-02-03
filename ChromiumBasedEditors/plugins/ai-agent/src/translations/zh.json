@@ -42,6 +42,7 @@
   "Download": "下载",
   "Search": "搜索...",
   "AddLocalFile": "添加本地文件...",
+  "AddLocalImage": "添加本地图片...",
   "RecentFiles": "最近的文件",
   "Attachments": "附件",
   "APIKey": "API 密钥",
@@ -79,5 +80,9 @@
   "EnableWebSearch": "在设置中启用网络搜索",
   "WantDeleteServer": "此服务器将从您的列表中删除。是否继续？",
   "NoModelsAvailable": "提供商不可用",
-  "CheckInfo": "AI 可能会出错。请核对重要信息。"
+  "CheckInfo": "AI 可能会出错。请核对重要信息。",
+  "ConfigurationError": "配置必须放置在 'mcpServers' 属性内",
+  "Thinking": "思考中",
+  "ExtendedThinking": "深度思考",
+  "ExtendedThinkingDescription": "此模型采用深度推理，可能会增加成本。"
 }

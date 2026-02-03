@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { RadioButton } from "@/components/radio-button";
 import { Tabs } from "@/components/tabs";
 import config from "@/config.json";
+import { useDirection } from "@/hooks/useDirection";
+import { cn } from "@/lib/utils";
 import useProviders from "@/store/useProviders";
 import { Providers } from "./sub-components/providers";
 import { Servers } from "./sub-components/servers";
@@ -13,6 +15,7 @@ const showWallet = config.showWallet;
 
 const Settings = () => {
   const { t } = useTranslation();
+  const { isRTL } = useDirection();
 
   const [selectedSection, setSelectedSection] = React.useState(
     showWallet ? "wallet" : "providers"
@@ -57,7 +60,12 @@ const Settings = () => {
                     {isWallet ? t("ONLYOFFICEWallet") : t("AIProviders")}
                   </h2>
                 ) : null}
-                <p className="text-[14px] leading-[20px] text-[var(--settings-description-color)]">
+                <p
+                  className={cn(
+                    "text-[14px] leading-[20px] text-[var(--settings-description-color)]",
+                    isRTL ? "text-end" : ""
+                  )}
+                >
                   {isWallet
                     ? t("ONLYOFFICEWalletDescription")
                     : t("AIProvidersDescription")}

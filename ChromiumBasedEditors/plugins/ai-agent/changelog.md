@@ -10,8 +10,10 @@
 - Add deepseek provider
 - Add xai provider
 - Add LM studio provider
+- Add mistral provider
 - Add support SSE and streamable-http for custom servers
 - Add support Extended thinking
+- Add RTL
 
 
 ### Bugs

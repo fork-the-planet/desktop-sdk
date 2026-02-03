@@ -39,7 +39,7 @@ const ChatList = () => {
 
   return isOpen ? (
     <div
-      className="w-[264px] min-w-[264px] h-full max-h-full border-r-[1px] border-[var(--chat-list-border-right)] flex flex-col overflow-y-auto"
+      className="w-[264px] min-w-[264px] h-full max-h-full border-e-[1px] border-[var(--chat-list-border-right)] flex flex-col overflow-y-auto"
       style={{ maxHeight: "100%" }}
     >
       <div className="sticky top-0 bg-[var(--layout-background-color)] z-10 pt-[24px] px-[24px]">
@@ -100,7 +100,7 @@ const ChatList = () => {
       </div>
     </div>
   ) : (
-    <div className="ml-[32px] mt-[24px]">
+    <div className="ms-[32px] mt-[24px]">
       <TooltipIconButton tooltip={t("ChatHistory")}>
         <IconButton
           iconName="btn-list-search"
