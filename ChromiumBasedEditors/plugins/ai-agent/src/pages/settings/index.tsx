@@ -65,7 +65,8 @@ const Settings = () => {
                 ) : null}
                 <p
                   className={cn(
-                    "text-[14px] leading-[20px] text-[var(--settings-description-color)]"
+                    "text-[14px] leading-[20px] text-[var(--settings-description-color)]",
+                    isRTL ? "text-end" : ""
                   )}
                 >
                   {isWallet
