@@ -1552,6 +1552,7 @@ public:
 				arFormats.push_back(AVS_OFFICESTUDIO_FILE_DOCUMENT_OTT);
 				arFormats.push_back(AVS_OFFICESTUDIO_FILE_DOCUMENT_RTF);
 				arFormats.push_back(AVS_OFFICESTUDIO_FILE_DOCUMENT_TXT);
+				arFormats.push_back(AVS_OFFICESTUDIO_FILE_DOCUMENT_MD);
 				arFormats.push_back(AVS_OFFICESTUDIO_FILE_DOCUMENT_HTML);
 				arFormats.push_back(AVS_OFFICESTUDIO_FILE_DOCUMENT_FB2);
 				arFormats.push_back(AVS_OFFICESTUDIO_FILE_DOCUMENT_EPUB);
@@ -1648,6 +1649,7 @@ public:
 				arFormats.push_back(AVS_OFFICESTUDIO_FILE_DOCUMENT_OTT);
 				arFormats.push_back(AVS_OFFICESTUDIO_FILE_DOCUMENT_RTF);
 				arFormats.push_back(AVS_OFFICESTUDIO_FILE_DOCUMENT_TXT);
+				arFormats.push_back(AVS_OFFICESTUDIO_FILE_DOCUMENT_MD);
 				arFormats.push_back(AVS_OFFICESTUDIO_FILE_DOCUMENT_HTML);
 				arFormats.push_back(AVS_OFFICESTUDIO_FILE_DOCUMENT_FB2);
 				arFormats.push_back(AVS_OFFICESTUDIO_FILE_DOCUMENT_EPUB);

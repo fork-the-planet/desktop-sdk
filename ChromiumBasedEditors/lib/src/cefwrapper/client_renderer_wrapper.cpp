@@ -5070,6 +5070,16 @@ window.AscDesktopEditor.CallInFrame(\"" +
 				CBgraFrame::RemoveOrientation(m_sLocalFileFolderWithoutFile + L"/media/" + sRet);
 				return sRet;
 			}
+			if (oChecker.eFileType == _CXIMAGE_FORMAT_GIF)
+			{
+				std::wstring sRet = L"image" + std::to_wstring(m_nLocalImagesNextIndex++) + L".gif";
+				NSFile::CFileBinary::Copy(sUrl, m_sLocalFileFolderWithoutFile + L"/media/" + sRet);
+				m_mapLocalAddImages.insert(std::pair<std::wstring, std::wstring>(sUrlMap, sRet));
+				if (0 != nCRC32)
+					m_mapLocalAddImagesCRC.insert(std::pair<unsigned int, std::wstring>(nCRC32, sRet));
+
+				return sRet;
+			}
 			if (oChecker.eFileType == _CXIMAGE_FORMAT_SVG)
 			{
 				// SVG now supported (old version below (convert to raster))

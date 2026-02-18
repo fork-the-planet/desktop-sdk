@@ -997,6 +997,8 @@ int CAscApplicationManager::GetFileFormatByExtentionForSave(const std::wstring& 
 		nFormat = AVS_OFFICESTUDIO_FILE_DOCUMENT_RTF;
 	else if (sName == L"txt")
 		nFormat = AVS_OFFICESTUDIO_FILE_DOCUMENT_TXT;
+	else if (sName == L"md")
+		nFormat = AVS_OFFICESTUDIO_FILE_DOCUMENT_MD;
 	else if (sName == L"html")
 		nFormat = AVS_OFFICESTUDIO_FILE_DOCUMENT_HTML;
 	else if (sName == L"xlsx")
